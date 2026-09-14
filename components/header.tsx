@@ -44,14 +44,13 @@ type AuthUser = {
 export function Header() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setDark(isDark);
-  }, []);
+  const [dark, setDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
 
   useEffect(() => {
     const supabase = createClient();
@@ -185,18 +184,22 @@ export function Header() {
                         </DropdownMenuLabel>
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/profil" className="cursor-pointer">
-                          <UserCircle className="mr-2 h-4 w-4" />
-                          <span>Мой профиль</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/add" className="cursor-pointer">
-                          <Plus className="mr-2 h-4 w-4" />
-                          <span>Добавить место</span>
-                        </Link>
-                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        render={
+                          <Link href="/profil" className="cursor-pointer">
+                            <UserCircle className="mr-2 h-4 w-4" />
+                            <span>Мой профиль</span>
+                          </Link>
+                        }
+                      />
+                      <DropdownMenuItem
+                        render={
+                          <Link href="/add" className="cursor-pointer">
+                            <Plus className="mr-2 h-4 w-4" />
+                            <span>Добавить место</span>
+                          </Link>
+                        }
+                      />
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={logout}

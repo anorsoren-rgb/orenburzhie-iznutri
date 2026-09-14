@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState } from "react";
-import { Upload, X, Loader2, ImagePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X, Loader2, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadPlaceImage, deletePlaceImage } from "@/lib/upload";
 
@@ -69,10 +68,8 @@ export function ImageUploader({
     const img = images[idx];
     if (!img) return;
 
-    // Оптимистично убираем из UI
     update(images.filter((_, i) => i !== idx));
 
-    // Удаляем из Storage
     try {
       await deletePlaceImage(img.path);
     } catch {
@@ -90,7 +87,6 @@ export function ImageUploader({
 
   return (
     <div className="space-y-3">
-      {/* Зона загрузки */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -125,7 +121,6 @@ export function ImageUploader({
         )}
       </div>
 
-      {/* Скрытый input */}
       <input
         ref={inputRef}
         type="file"
@@ -135,14 +130,12 @@ export function ImageUploader({
         onChange={(e) => e.target.files && handleFiles(e.target.files)}
       />
 
-      {/* Ошибка */}
       {error && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      {/* Превью */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {images.map((img, i) => (

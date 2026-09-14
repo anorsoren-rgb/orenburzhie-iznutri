@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef } from "react";
 
@@ -9,12 +9,17 @@ type Props = {
   zoom?: number;
 };
 
+type LeafletMap = {
+  remove: () => void;
+};
+
 export function PlaceMap({ lat, lng, title, zoom = 13 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    let map: any = null;
+    let map: LeafletMap | null = null;
 
     (async () => {
       const L = (await import("leaflet")).default;
@@ -33,13 +38,13 @@ export function PlaceMap({ lat, lng, title, zoom = 13 }: Props) {
         center: [lat, lng],
         zoom,
         scrollWheelZoom: false,
-      });
+      }) as unknown as LeafletMap;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
-      }).addTo(map);
+      }).addTo(map as never);
 
       const icon = L.divIcon({
         html: '<div style="width:32px;height:32px;background:#c75b3a;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
@@ -49,9 +54,11 @@ export function PlaceMap({ lat, lng, title, zoom = 13 }: Props) {
       });
 
       L.marker([lat, lng], { icon })
-        .addTo(map)
+        .addTo(map as never)
         .bindPopup(`<strong>${title}</strong>`)
         .openPopup();
+
+      mapRef.current = map;
     })();
 
     return () => {

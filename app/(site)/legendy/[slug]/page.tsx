@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, BookOpen, Eye, MapPin, Calendar } from "lucide-react";
@@ -52,7 +52,6 @@ export default async function LegendPage({
 
   if (!legend) notFound();
 
-  // Инкремент просмотров
   const supabase = await createClient();
   supabase
     .from("legends")
@@ -60,7 +59,7 @@ export default async function LegendPage({
     .eq("id", legend.id)
     .then(() => {});
 
-  const place = legend.place as
+  const place = legend.place as unknown as
     | { id: string; slug: string; title: string }
     | null;
 
@@ -125,7 +124,7 @@ export default async function LegendPage({
         </div>
       </header>
 
-      <div className="prose prose-neutral dark:prose-invert mt-8 max-w-none whitespace-pre-wrap text-base leading-relaxed">
+      <div className="mt-8 max-w-none whitespace-pre-wrap text-base leading-relaxed">
         {legend.body}
       </div>
 

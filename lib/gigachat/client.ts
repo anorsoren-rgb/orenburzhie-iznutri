@@ -1,9 +1,6 @@
 ﻿import { Agent, fetch as undiciFetch } from "undici";
 import { getRussianTrustedRootCA } from "./cert";
 
-// ============================================
-// ТИПЫ
-// ============================================
 type GigaChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -31,23 +28,14 @@ export type GigaChatResponse = {
   };
 };
 
-// ============================================
-// КЭШ ТОКЕНА
-// ============================================
 let tokenCache: { value: string; expiresAt: number } | null = null;
 
-// ============================================
-// HTTP-АГЕНТ С СЕРТИФИКАТОМ МИНЦИФРЫ
-// ============================================
 const httpsAgent = new Agent({
   connect: {
     ca: getRussianTrustedRootCA(),
   },
 });
 
-// ============================================
-// ПОЛУЧЕНИЕ ТОКЕНА
-// ============================================
 async function getAccessToken(): Promise<string> {
   if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
     return tokenCache.value;
@@ -73,7 +61,7 @@ async function getAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({ scope }).toString(),
     dispatcher: httpsAgent,
-  } as any);
+  } as unknown as Parameters<typeof undiciFetch>[1]);
 
   if (!res.ok) {
     const text = await res.text();
@@ -93,9 +81,6 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-// ============================================
-// ОСНОВНАЯ ФУНКЦИЯ ЧАТА
-// ============================================
 export async function gigachatChat(
   req: GigaChatRequest
 ): Promise<GigaChatResponse> {
@@ -118,7 +103,7 @@ export async function gigachatChat(
       max_tokens: req.max_tokens ?? 1024,
     }),
     dispatcher: httpsAgent,
-  } as any);
+  } as unknown as Parameters<typeof undiciFetch>[1]);
 
   if (!res.ok) {
     const text = await res.text();
@@ -128,9 +113,6 @@ export async function gigachatChat(
   return (await res.json()) as GigaChatResponse;
 }
 
-// ============================================
-// УДОБНАЯ ОБЁРТКА: один вопрос — один ответ
-// ============================================
 export async function askGigaChat(
   systemPrompt: string,
   userPrompt: string
@@ -145,9 +127,6 @@ export async function askGigaChat(
   return res.choices[0]?.message?.content ?? "";
 }
 
-// ============================================
-// ЗАПРОС С ОЖИДАНИЕМ JSON
-// ============================================
 export async function askGigaChatJSON<T>(
   systemPrompt: string,
   userPrompt: string
@@ -165,7 +144,7 @@ export async function askGigaChatJSON<T>(
 
   try {
     return JSON.parse(cleaned) as T;
-  } catch (e) {
+  } catch {
     throw new Error(
       `GigaChat вернул не-JSON. Сырой ответ: ${text.slice(0, 500)}`
     );

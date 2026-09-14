@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ImageUploader } from "@/components/image-uploader";
 import { createClient } from "@/lib/supabase/client";
 
@@ -149,7 +148,6 @@ export function EditPlaceForm({
         </Link>
       </Button>
 
-      {/* Фото */}
       <Card>
         <CardContent className="space-y-4 p-6">
           <h2 className="font-display text-lg font-semibold">Фотографии</h2>
@@ -165,7 +163,6 @@ export function EditPlaceForm({
         </CardContent>
       </Card>
 
-      {/* Основное */}
       <Card>
         <CardContent className="space-y-4 p-6">
           <h2 className="font-display text-lg font-semibold">
@@ -296,7 +293,6 @@ export function EditPlaceForm({
         </CardContent>
       </Card>
 
-      {/* Кнопки */}
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"
@@ -337,7 +333,6 @@ export function EditPlaceForm({
         </Button>
       </div>
 
-      {/* Статус */}
       {success && (
         <div className="rounded-md border border-green-500/40 bg-green-50/50 px-4 py-3 text-sm text-green-700 dark:bg-green-950/20 dark:text-green-400">
           ✅ Сохранено! Перенаправляем на страницу места...

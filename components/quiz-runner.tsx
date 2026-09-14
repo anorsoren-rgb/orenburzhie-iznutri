@@ -1,15 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Trophy,
   CheckCircle2,
   XCircle,
   ArrowRight,
   RotateCcw,
-  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,13 +22,10 @@ type Question = {
 
 type Props = {
   quizId: string;
-  quizSlug: string;
-  quizTitle: string;
   questions: Question[];
 };
 
-export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
-  const router = useRouter();
+export function QuizRunner({ quizId, questions }: Props) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -56,17 +51,18 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
     } else {
       setFinished(true);
 
-      // Сохраняем результат
       try {
         const supabase = createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
+        const finalScore = score + (isCorrect ? 1 : 0);
+
         await supabase.from("quiz_results").insert({
           quiz_id: quizId,
           user_id: user?.id ?? null,
-          score: score + (isCorrect ? 0 : 0), // актуальный score уже посчитан
+          score: finalScore,
           total,
           answers: [],
         });
@@ -84,9 +80,6 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
     setFinished(false);
   }
 
-  // ============================================
-  // РЕЗУЛЬТАТ
-  // ============================================
   if (finished) {
     const percent = Math.round((score / total) * 100);
     let emoji = "📚";
@@ -147,15 +140,11 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
     );
   }
 
-  // ============================================
-  // ВОПРОС
-  // ============================================
   const progress = ((current + (answered ? 1 : 0)) / total) * 100;
 
   return (
     <Card className="border-border/60">
       <CardContent className="space-y-6 p-6">
-        {/* Прогресс */}
         <div>
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
@@ -173,12 +162,10 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
           </div>
         </div>
 
-        {/* Вопрос */}
         <h2 className="font-display text-xl font-semibold leading-tight">
           {question.q}
         </h2>
 
-        {/* Варианты */}
         <div className="space-y-2">
           {question.options.map((opt, i) => {
             const isThisCorrect = i === question.correct;
@@ -231,7 +218,6 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
           })}
         </div>
 
-        {/* Пояснение */}
         {answered && (
           <div
             className={`rounded-lg border p-4 ${
@@ -249,13 +235,8 @@ export function QuizRunner({ quizId, quizSlug, quizTitle, questions }: Props) {
           </div>
         )}
 
-        {/* Кнопка «Далее» */}
         {answered && (
-          <Button
-            onClick={next}
-            className="w-full [&_svg]:size-5"
-            size="lg"
-          >
+          <Button onClick={next} className="w-full [&_svg]:size-5" size="lg">
             {current + 1 < total ? (
               <>
                 <span>Следующий вопрос</span>

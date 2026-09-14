@@ -92,7 +92,7 @@ export default async function PlacesPage({
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((place, i) => {
-              const cat = place.category as
+              const cat = place.category as unknown as
                 | { id: number; slug: string; name: string; icon: string | null }
                 | null;
 

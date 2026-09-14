@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   Loader2,
-  MapPin,
   Clock,
   Wallet,
   Car,
@@ -60,6 +60,7 @@ const TRANSPORT_ICON: Record<string, React.ReactNode> = {
 };
 
 export function RouteBuilder({ places }: { places: Place[] }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +102,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Выбор мест */}
       <Card>
         <CardContent className="p-6">
           <h2 className="mb-4 font-display text-lg font-semibold">
@@ -171,7 +171,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
         </CardContent>
       </Card>
 
-      {/* Ошибка */}
       {error && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -179,7 +178,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
         </div>
       )}
 
-      {/* Результат */}
       {route && (
         <Card>
           <CardContent className="space-y-5 p-6">
@@ -196,7 +194,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
               </p>
             </div>
 
-            {/* Метрики */}
             <div className="flex flex-wrap gap-3 text-sm">
               <span className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5">
                 <Clock className="h-4 w-4" />
@@ -213,7 +210,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
               </span>
             </div>
 
-            {/* Шаги */}
             <div className="space-y-3">
               <h3 className="font-display font-semibold">Этапы</h3>
               {route.steps.map((step, i) => {
@@ -247,7 +243,6 @@ export function RouteBuilder({ places }: { places: Place[] }) {
               })}
             </div>
 
-            {/* Общие советы */}
             {route.overall_tips && (
               <div className="rounded-lg bg-accent/40 p-4">
                 <h3 className="font-display font-semibold">Общие советы</h3>
@@ -264,7 +259,7 @@ export function RouteBuilder({ places }: { places: Place[] }) {
                 onClick={() => {
                   const params = new URLSearchParams();
                   selected.forEach((id) => params.append("place", id));
-                  window.location.href = `/sobrat-marshrut/pdf?${params.toString()}`;
+                  router.push(`/sobrat-marshrut/pdf?${params.toString()}`);
                 }}
                 disabled
                 title="Скоро"

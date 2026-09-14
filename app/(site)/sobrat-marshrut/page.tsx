@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { RouteBuilder } from "@/components/route-builder";
 
@@ -13,14 +13,12 @@ export default async function RouteBuilderPage() {
 
   const { data: places } = await supabase
     .from("places")
-    .select(
-      "id, slug, title, short_desc, category:categories(id, name, icon)"
-    )
+    .select("id, slug, title, short_desc, category:categories(id, name, icon)")
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
   const list = (places ?? []).map((p) => {
-    const cat = p.category as
+    const cat = p.category as unknown as
       | { id: number; name: string; icon: string | null }
       | null;
     return {

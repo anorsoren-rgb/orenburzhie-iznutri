@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,7 +57,7 @@ export default async function LegendsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {list.map((legend) => {
-            const place = legend.place as
+            const place = legend.place as unknown as
               | { id: string; slug: string; title: string }
               | null;
 

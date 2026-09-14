@@ -7,9 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-// ============================================
-// СХЕМА ВАЛИДАЦИИ
-// ============================================
 const BodySchema = z.object({
   question: z.string().min(2).max(500),
   history: z
@@ -24,12 +21,9 @@ const BodySchema = z.object({
     .default([]),
 });
 
-// ============================================
-// ПРОСТОЙ RATE LIMITING (в памяти)
-// ============================================
 const rateLimit = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10; // запросов
-const WINDOW_MS = 60_000; // в минуту
+const RATE_LIMIT = 10;
+const WINDOW_MS = 60_000;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -40,15 +34,11 @@ function checkRateLimit(ip: string): boolean {
     return true;
   }
 
-  if (entry.count >= RATE_LIMIT) {
-    return false;
-  }
-
+  if (entry.count >= RATE_LIMIT) return false;
   entry.count++;
   return true;
 }
 
-// Периодическая очистка карты (чтобы не текла память)
 setInterval(() => {
   const now = Date.now();
   for (const [ip, entry] of rateLimit.entries()) {
@@ -56,14 +46,10 @@ setInterval(() => {
   }
 }, 5 * 60_000);
 
-// ============================================
-// ПОИСК КОНТЕКСТА (пока — простой, потом RAG)
-// ============================================
 async function findContext(question: string): Promise<string[]> {
   try {
     const supabase = await createClient();
 
-    // Ищем места и легенды по ключевым словам (ILIKE — простой поиск)
     const words = question
       .toLowerCase()
       .split(/\s+/)
@@ -89,13 +75,9 @@ async function findContext(question: string): Promise<string[]> {
   }
 }
 
-// ============================================
-// ОСНОВНОЙ ОБРАБОТЧИК
-// ============================================
 export async function POST(req: NextRequest) {
   const started = Date.now();
 
-  // 1. Rate limiting
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     req.headers.get("x-real-ip") ??
@@ -111,12 +93,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. Валидация входных данных
   let body: z.infer<typeof BodySchema>;
   try {
     const json = await req.json();
     body = BodySchema.parse(json);
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { ok: false, error: "Некорректный запрос" },
       { status: 400 }
@@ -124,11 +105,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { question } = body;
-
-  // 3. Ищем контекст на сайте
   const context = await findContext(question);
 
-  // 4. Спрашиваем GigaChat
   try {
     const answer = await askGigaChat(
       CHAT_SYSTEM,
@@ -137,7 +115,6 @@ export async function POST(req: NextRequest) {
 
     const duration = Date.now() - started;
 
-    // 5. Логируем в БД (не блокируя ответ)
     try {
       const supabase = await createClient();
       await supabase.from("gigachat_logs").insert({
@@ -147,7 +124,7 @@ export async function POST(req: NextRequest) {
         duration_ms: duration,
       });
     } catch {
-      // Не критично, если лог не записался
+      // не критично
     }
 
     return NextResponse.json({
@@ -156,15 +133,11 @@ export async function POST(req: NextRequest) {
       duration_ms: duration,
       context_used: context.length,
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[gigachat/chat]", message);
-
+  } catch {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "Не удалось получить ответ. Попробуй ещё раз через минуту.",
+        error: "Не удалось получить ответ. Попробуй ещё раз через минуту.",
       },
       { status: 500 }
     );

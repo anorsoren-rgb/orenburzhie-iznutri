@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, Trophy, Sparkles, MapPin } from "lucide-react";
@@ -55,7 +55,7 @@ export default async function QuizPage({
 
   if (!quiz) notFound();
 
-  const place = quiz.place as
+  const place = quiz.place as unknown as
     | { id: string; slug: string; title: string }
     | null;
   const questions = Array.isArray(quiz.questions)
@@ -117,12 +117,7 @@ export default async function QuizPage({
         )}
       </header>
 
-      <QuizRunner
-        quizId={quiz.id}
-        quizSlug={quiz.slug}
-        quizTitle={quiz.title}
-        questions={questions}
-      />
+      <QuizRunner quizId={quiz.id} questions={questions} />
     </article>
   );
 }

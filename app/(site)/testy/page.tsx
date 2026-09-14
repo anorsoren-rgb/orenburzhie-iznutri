@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +56,7 @@ export default async function QuizzesPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((quiz) => {
-            const place = quiz.place as
+            const place = quiz.place as unknown as
               | { id: string; slug: string; title: string }
               | null;
             const questions = Array.isArray(quiz.questions)
@@ -74,7 +74,10 @@ export default async function QuizzesPage() {
                     <div className="flex items-center gap-2">
                       <Trophy className="h-8 w-8 text-ochre-600" />
                       {quiz.created_by_gigachat && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        <Badge
+                          variant="secondary"
+                          className="bg-primary/10 text-primary"
+                        >
                           <Sparkles className="mr-1 h-3 w-3" />
                           GigaChat
                         </Badge>

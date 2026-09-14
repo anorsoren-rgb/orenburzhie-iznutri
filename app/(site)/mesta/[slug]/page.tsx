@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -88,10 +88,10 @@ export default async function PlacePage({
     .then(() => {});
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const category = place.category as
+  const category = place.category as unknown as
     | { id: number; slug: string; name: string; icon: string | null }
     | null;
-  const author = place.author as
+  const author = place.author as unknown as
     | { id: string; username: string | null; full_name: string | null }
     | null;
 

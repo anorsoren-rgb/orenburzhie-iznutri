@@ -74,7 +74,7 @@ export default async function EventPage({
 
   if (!event) notFound();
 
-  const place = event.place as
+  const place = event.place as unknown as
     | { id: string; slug: string; title: string }
     | null;
 
@@ -122,12 +122,11 @@ export default async function EventPage({
           <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
           <div>
             <p className="font-medium">{formatFullDate(event.starts_at)}</p>
-            {event.ends_at &&
-              event.ends_at !== event.starts_at && (
-                <p className="text-sm text-muted-foreground">
-                  до {formatFullDate(event.ends_at)}
-                </p>
-              )}
+            {event.ends_at && event.ends_at !== event.starts_at && (
+              <p className="text-sm text-muted-foreground">
+                до {formatFullDate(event.ends_at)}
+              </p>
+            )}
             <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
               Начало в {formatTime(event.starts_at)}
@@ -139,9 +138,7 @@ export default async function EventPage({
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="font-medium">
-                {event.address ?? place?.title}
-              </p>
+              <p className="font-medium">{event.address ?? place?.title}</p>
               {place && event.address && (
                 <Link
                   href={`/mesta/${place.slug}`}
