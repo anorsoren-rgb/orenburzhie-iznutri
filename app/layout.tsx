@@ -16,20 +16,74 @@ const manrope = Manrope({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+
   title: {
-    default: "Оренбуржье изнутри — народный гид по Орску и области",
+    default:
+      "Оренбуржье изнутри — народный гид по Орску и Оренбургской области",
     template: "%s | Оренбуржье изнутри",
   },
+
   description:
-    "Места, истории, легенды, маршруты и события Орска и Оренбургской области.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+    "Места, истории, легенды, маршруты и события Орска и Оренбургской области. Умный гид на базе GigaChat: спроси про Орск — и получи ответ.",
+
+  keywords: [
+    "Орск",
+    "Оренбургская область",
+    "Оренбуржье",
+    "достопримечательности Орска",
+    "куда сходить в Орске",
+    "маршруты по Оренбуржью",
+    "легенды Оренбуржья",
+    "Губерлинские горы",
+    "Ириклинское водохранилище",
+    "Орская крепость",
+    "путешествия по Уралу",
+  ],
+
+  authors: [{ name: "Оренбуржье изнутри" }],
+  creator: "Оренбуржье изнутри",
+  publisher: "Оренбуржье изнутри",
+
   openGraph: {
     type: "website",
     locale: "ru_RU",
+    url: SITE_URL,
     siteName: "Оренбуржье изнутри",
+    title: "Оренбуржье изнутри — народный гид по Орску и области",
+    description:
+      "Места, легенды, маршруты и события Орска и Оренбургской области. Умный гид на базе GigaChat.",
+    images: [
+      {
+        url: "/og/default.svg",
+        width: 1200,
+        height: 630,
+        alt: "Оренбуржье изнутри — народный гид по Орску и области",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Оренбуржье изнутри",
+    description:
+      "Места, легенды, маршруты и события Орска и Оренбургской области.",
+    images: ["/og/default.svg"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

@@ -47,17 +47,31 @@ export async function generateMetadata({
   if (!place) return { title: "Место не найдено" };
 
   const description = place.short_desc ?? place.title;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+  const url = `${siteUrl}/mesta/${place.slug}`;
+  const image = place.cover_url
+    ? place.cover_url
+    : `${siteUrl}/og/default.svg`;
 
   return {
     title: place.title,
     description,
+    alternates: {
+      canonical: `/mesta/${place.slug}`,
+    },
     openGraph: {
       title: place.title,
       description,
       type: "article",
-      url: `${siteUrl}/mesta/${place.slug}`,
-      images: place.cover_url ? [place.cover_url] : undefined,
+      url,
+      images: [{ url: image, width: 1200, height: 630, alt: place.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: place.title,
+      description,
+      images: [image],
     },
   };
 }
@@ -87,7 +101,8 @@ export default async function PlacePage({
     .eq("id", place.id)
     .then(() => {});
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
   const category = place.category as unknown as
     | { id: number; slug: string; name: string; icon: string | null }
     | null;

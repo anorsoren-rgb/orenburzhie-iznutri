@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="sunrise" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbe6de"/>
+      <stop offset="30%" stop-color="#faf0ce"/>
+      <stop offset="60%" stop-color="#e8ebe2"/>
+      <stop offset="100%" stop-color="#c9b58c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Фон -->
+  <rect width="1200" height="630" fill="url(#sunrise)"/>
+
+  <!-- Геометка -->
+  <g transform="translate(140, 220)">
+    <path d="M60 0 C 27 0 0 27 0 60 C 0 105 60 160 60 160 C 60 160 120 105 120 60 C 120 27 93 0 60 0 Z"
+          fill="#c75b3a"/>
+    <circle cx="60" cy="60" r="22" fill="#faf8f4"/>
+  </g>
+
+  <!-- Заголовок -->
+  <text x="320" y="290"
+        font-family="Manrope, Arial, sans-serif"
+        font-size="72"
+        font-weight="700"
+        fill="#0a1a2e">
+    Оренбуржье
+  </text>
+  <text x="320" y="380"
+        font-family="Manrope, Arial, sans-serif"
+        font-size="72"
+        font-weight="700"
+        fill="#c75b3a">
+    изнутри
+  </text>
+
+  <!-- Подзаголовок -->
+  <text x="320" y="450"
+        font-family="Inter, Arial, sans-serif"
+        font-size="28"
+        font-weight="400"
+        fill="#4a5a42">
+    Народный гид по Орску и Оренбургской области
+  </text>
+
+  <!-- Нижняя полоса -->
+  <rect x="0" y="580" width="1200" height="50" fill="#0a1a2e" opacity="0.1"/>
+  <text x="60" y="612"
+        font-family="Inter, Arial, sans-serif"
+        font-size="20"
+        font-weight="500"
+        fill="#0a1a2e"
+        opacity="0.7">
+    orenburzhie-iznutri.ru
+  </text>
+</svg>
