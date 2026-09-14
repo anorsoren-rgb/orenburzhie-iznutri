@@ -37,13 +37,29 @@ export async function generateMetadata({
 
   if (!event) return { title: "Событие не найдено" };
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
   return {
     title: event.title,
     description: event.description ?? event.title,
+    alternates: { canonical: `/sobytiya/${event.slug}` },
     openGraph: {
       title: event.title,
       description: event.description ?? "",
       type: "article",
+      url: `${siteUrl}/sobytiya/${event.slug}`,
+      images: event.cover_url
+        ? [event.cover_url]
+        : [`${siteUrl}/og/default.svg`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description: event.description ?? "",
+      images: event.cover_url
+        ? [event.cover_url]
+        : [`${siteUrl}/og/default.svg`],
     },
   };
 }
@@ -78,25 +94,75 @@ export default async function EventPage({
     | { id: string; slug: string; title: string }
     | null;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const jsonLd = {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
+  const eventJsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
     description: event.description ?? "",
     startDate: event.starts_at,
     endDate: event.ends_at ?? undefined,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     url: `${siteUrl}/sobytiya/${event.slug}`,
-    location: event.address
-      ? { "@type": "Place", name: event.address }
+    image: event.cover_url ?? undefined,
+    location: {
+      "@type": "Place",
+      name: event.address ?? place?.title ?? "Орск",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Орск",
+        addressRegion: "Оренбургская область",
+        addressCountry: "RU",
+      },
+    },
+    offers: event.price_rub !== null
+      ? {
+          "@type": "Offer",
+          price: event.price_rub,
+          priceCurrency: "RUB",
+          availability: "https://schema.org/InStock",
+          url: event.url ?? `${siteUrl}/sobytiya/${event.slug}`,
+        }
       : undefined,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "События",
+        item: `${siteUrl}/sobytiya`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: event.title,
+        item: `${siteUrl}/sobytiya/${event.slug}`,
+      },
+    ],
   };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <Button asChild variant="ghost" size="sm" className="mb-6">

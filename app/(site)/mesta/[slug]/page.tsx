@@ -110,7 +110,7 @@ export default async function PlacePage({
     | { id: string; username: string | null; full_name: string | null }
     | null;
 
-  const jsonLd = {
+  const placeJsonLd = {
     "@context": "https://schema.org",
     "@type": "TouristAttraction",
     name: place.title,
@@ -127,11 +127,40 @@ export default async function PlacePage({
         : undefined,
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Места",
+        item: `${siteUrl}/mesta`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: place.title,
+        item: `${siteUrl}/mesta/${place.slug}`,
+      },
+    ],
+  };
+
   return (
     <article className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(placeJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <Button asChild variant="ghost" size="sm" className="mb-4">

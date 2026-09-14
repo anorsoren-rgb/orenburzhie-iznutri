@@ -31,13 +31,25 @@ export async function generateMetadata({
 
   if (!legend) return { title: "Легенда не найдена" };
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
   return {
     title: legend.title,
     description: legend.excerpt ?? legend.title,
+    alternates: { canonical: `/legendy/${legend.slug}` },
     openGraph: {
       title: legend.title,
       description: legend.excerpt ?? "",
       type: "article",
+      url: `${siteUrl}/legendy/${legend.slug}`,
+      images: [`${siteUrl}/og/default.svg`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: legend.title,
+      description: legend.excerpt ?? "",
+      images: [`${siteUrl}/og/default.svg`],
     },
   };
 }
@@ -63,21 +75,62 @@ export default async function LegendPage({
     | { id: string; slug: string; title: string }
     | null;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const jsonLd = {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
+  const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: legend.title,
     articleBody: legend.body,
     url: `${siteUrl}/legendy/${legend.slug}`,
     datePublished: legend.created_at,
+    inLanguage: "ru-RU",
+    author: { "@type": "Organization", name: "Оренбуржье изнутри" },
+    publisher: {
+      "@type": "Organization",
+      name: "Оренбуржье изнутри",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/og/default.svg`,
+      },
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Легенды",
+        item: `${siteUrl}/legendy`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: legend.title,
+        item: `${siteUrl}/legendy/${legend.slug}`,
+      },
+    ],
   };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <Button asChild variant="ghost" size="sm" className="mb-6">

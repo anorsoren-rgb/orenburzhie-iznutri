@@ -39,9 +39,26 @@ export async function generateMetadata({
 
   if (!quiz) return { title: "Тест не найден" };
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
   return {
     title: quiz.title,
     description: quiz.description ?? `Викторина: ${quiz.title}`,
+    alternates: { canonical: `/testy/${quiz.slug}` },
+    openGraph: {
+      title: quiz.title,
+      description: quiz.description ?? "",
+      url: `${siteUrl}/testy/${quiz.slug}`,
+      type: "article",
+      images: [`${siteUrl}/og/default.svg`],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: quiz.title,
+      description: quiz.description ?? "",
+      images: [`${siteUrl}/og/default.svg`],
+    },
   };
 }
 
@@ -62,6 +79,46 @@ export default async function QuizPage({
     ? (quiz.questions as Question[])
     : [];
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
+
+  const quizJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Quiz",
+    name: quiz.title,
+    description: quiz.description ?? "",
+    url: `${siteUrl}/testy/${quiz.slug}`,
+    educationalLevel: "intermediate",
+    inLanguage: "ru-RU",
+    numberOfQuestions: questions.length,
+    about: place?.title ?? undefined,
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Тесты",
+        item: `${siteUrl}/testy`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: quiz.title,
+        item: `${siteUrl}/testy/${quiz.slug}`,
+      },
+    ],
+  };
+
   if (questions.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
@@ -77,6 +134,15 @@ export default async function QuizPage({
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(quizJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <Button asChild variant="ghost" size="sm" className="mb-6">
         <Link href="/testy">
           <ArrowLeft className="h-4 w-4" />
