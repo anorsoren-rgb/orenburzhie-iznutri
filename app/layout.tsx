@@ -2,6 +2,7 @@
 import { Inter, Manrope } from "next/font/google";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { JsonLd } from "@/components/json-ld";
 import "./globals.css";
 
 const inter = Inter({
@@ -87,6 +88,47 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Оренбуржье изнутри",
+  url: SITE_URL,
+  logo: `${SITE_URL}/og/default.svg`,
+  description:
+    "Народный интерактивный гид по Орску и Оренбургской области: места, легенды, маршруты, события, тесты. Умный помощник на базе GigaChat.",
+  foundingDate: "2026",
+  areaServed: {
+    "@type": "Place",
+    name: "Оренбургская область",
+  },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Оренбуржье изнутри",
+  url: SITE_URL,
+  description:
+    "Места, легенды, маршруты и события Орска и Оренбургской области.",
+  inLanguage: "ru-RU",
+  publisher: {
+    "@type": "Organization",
+    name: "Оренбуржье изнутри",
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/og/default.svg`,
+    },
+  },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/mesta?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -95,6 +137,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${manrope.variable} flex min-h-screen flex-col font-sans antialiased`}
       >
+        <JsonLd id="org" data={organizationJsonLd} />
+        <JsonLd id="website" data={websiteJsonLd} />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
