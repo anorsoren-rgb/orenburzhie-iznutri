@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ImageUploader } from "@/components/image-uploader";
 import { createClient } from "@/lib/supabase/client";
 
 type Category = { id: number; slug: string; name: string; icon: string | null };
@@ -29,18 +30,23 @@ type ExpandedData = {
   tags: string[];
 };
 
-export function AddPlaceForm({ categories }: { categories: Category[] }) {
+type UploadedImage = { url: string; path: string };
+
+export function AddPlaceForm({
+  categories,
+  userId,
+}: {
+  categories: Category[];
+  userId: string;
+}) {
   const router = useRouter();
 
-  // Основные поля
   const [title, setTitle] = useState("");
   const [rawInput, setRawInput] = useState("");
   const [categoryId, setCategoryId] = useState<number | null>(null);
-
-  // Поля, которые заполняет GigaChat
+  const [images, setImages] = useState<UploadedImage[]>([]);
   const [expanded, setExpanded] = useState<ExpandedData | null>(null);
 
-  // Состояния
   const [improving, setImproving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +54,6 @@ export function AddPlaceForm({ categories }: { categories: Category[] }) {
   const canImprove = rawInput.trim().length >= 10;
   const canSave = title.trim().length >= 3 && expanded !== null;
 
-  // ============================================
-  // ВЫЗОВ GIGACHAT — «Улучшить»
-  // ============================================
   async function improve() {
     if (!canImprove || improving) return;
 
@@ -83,9 +86,6 @@ export function AddPlaceForm({ categories }: { categories: Category[] }) {
     }
   }
 
-  // ============================================
-  // СОХРАНЕНИЕ В БД
-  // ============================================
   async function save() {
     if (!canSave || saving) return;
 
@@ -95,36 +95,40 @@ export function AddPlaceForm({ categories }: { categories: Category[] }) {
     try {
       const supabase = createClient();
 
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-zа-я0-9\s-]/gi, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .slice(0, 60) + "-" + Date.now().toString(36);
+      const slug =
+        title
+          .toLowerCase()
+          .replace(/[^a-zа-я0-9\s-]/gi, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .slice(0, 60) +
+        "-" +
+        Date.now().toString(36);
 
-     // Получаем текущего пользователя, чтобы указать его как автора
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-if (!user) {
-  throw new Error("Не удалось определить пользователя. Войди заново.");
-}
+      if (!user) {
+        throw new Error("Не удалось определить пользователя. Войди заново.");
+      }
 
-const { error: insertError } = await supabase.from("places").insert({
-  slug,
-  title: title.trim(),
-  short_desc: expanded!.short_desc,
-  full_desc: expanded!.full_desc,
-  how_to_get: expanded!.how_to_get,
-  tips: expanded!.tips,
-  warnings: expanded!.warnings,
-  season: expanded!.season,
-  is_free: expanded!.is_free,
-  category_id: categoryId,
-  author_id: user.id,
-  status: "pending",
-});
+      const { error: insertError } = await supabase.from("places").insert({
+        slug,
+        title: title.trim(),
+        short_desc: expanded!.short_desc,
+        full_desc: expanded!.full_desc,
+        how_to_get: expanded!.how_to_get,
+        tips: expanded!.tips,
+        warnings: expanded!.warnings,
+        season: expanded!.season,
+        is_free: expanded!.is_free,
+        category_id: categoryId,
+        author_id: user.id,
+        cover_url: images[0]?.url ?? null,
+        gallery: images.map((img) => img.url),
+        status: "pending",
+      });
 
       if (insertError) throw new Error(insertError.message);
 
@@ -136,9 +140,6 @@ const { error: insertError } = await supabase.from("places").insert({
     }
   }
 
-  // ============================================
-  // ОБНОВЛЕНИЕ ПОЛЯ EXPANDED
-  // ============================================
   function updateExpanded<K extends keyof ExpandedData>(
     key: K,
     value: ExpandedData[K]
@@ -148,12 +149,9 @@ const { error: insertError } = await supabase.from("places").insert({
 
   return (
     <div className="space-y-6">
-      {/* Шаг 1 — основное */}
       <Card>
         <CardContent className="space-y-4 p-6">
-          <h2 className="font-display text-lg font-semibold">
-            1. Основное
-          </h2>
+          <h2 className="font-display text-lg font-semibold">1. Основное</h2>
 
           <div>
             <label className="text-sm font-medium" htmlFor="title">
@@ -207,6 +205,18 @@ const { error: insertError } = await supabase.from("places").insert({
             </div>
           </div>
 
+          <div>
+            <label className="text-sm font-medium">Фотографии</label>
+            <p className="mb-2 text-xs text-muted-foreground">
+              Первое фото станет обложкой места
+            </p>
+            <ImageUploader
+              userId={userId}
+              maxFiles={5}
+              onChange={setImages}
+            />
+          </div>
+
           <Button
             type="button"
             onClick={improve}
@@ -229,7 +239,6 @@ const { error: insertError } = await supabase.from("places").insert({
         </CardContent>
       </Card>
 
-      {/* Шаг 2 — расширенное описание */}
       {expanded && (
         <Card>
           <CardContent className="space-y-4 p-6">
@@ -357,7 +366,6 @@ const { error: insertError } = await supabase.from("places").insert({
         </Card>
       )}
 
-      {/* Ошибка */}
       {error && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />

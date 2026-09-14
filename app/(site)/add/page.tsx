@@ -15,7 +15,6 @@ export default async function AddPage() {
     redirect("/login?next=/add");
   }
 
-  // Загружаем категории
   const { data: categories } = await supabase
     .from("categories")
     .select("id, slug, name, icon")
@@ -27,11 +26,11 @@ export default async function AddPage() {
         <h1 className="font-display text-3xl font-bold">Добавить место</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Опиши место в 2–3 строках, а GigaChat поможет развернуть его в
-          полноценную карточку.
+          полноценную карточку. Прикрепи фото — они появятся на странице места.
         </p>
       </div>
 
-      <AddPlaceForm categories={categories ?? []} />
+      <AddPlaceForm categories={categories ?? []} userId={user.id} />
     </div>
   );
 }
