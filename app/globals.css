@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   ПАЛИТРА «СТЕПЬ + РАССВЕТ НАД ОРСКОМ»
+   ============================================ */
+@theme inline {
+  /* Шрифты */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+
+  /* Основные цвета палитры */
+  --color-terracotta-50:  #fdf4f0;
+  --color-terracotta-100: #fbe6de;
+  --color-terracotta-500: #c75b3a;
+  --color-terracotta-600: #a8472a;
+  --color-terracotta-700: #86381f;
+
+  --color-ochre-50:  #fdf9ec;
+  --color-ochre-100: #faf0ce;
+  --color-ochre-500: #d4a017;
+  --color-ochre-600: #b08210;
+
+  --color-steppe-50:  #f6f7f4;
+  --color-steppe-100: #e8ebe2;
+  --color-steppe-500: #7a8b6f;
+  --color-steppe-700: #4a5a42;
+
+  --color-sand-50:  #faf8f4;
+  --color-sand-100: #f2ede2;
+  --color-sand-200: #e6dcc7;
+  --color-sand-500: #c9b58c;
+
+  --color-deepblue-500: #1e3a5f;
+  --color-deepblue-700: #142a45;
+  --color-deepblue-900: #0a1a2e;
+
+  /* Семантические переменные shadcn */
+  --radius: 0.75rem;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* ============================================
+   СВЕТЛАЯ ТЕМА (по умолчанию)
+   ============================================ */
+:root {
+  --background: var(--color-sand-50);
+  --foreground: var(--color-deepblue-900);
+
+  --card: #ffffff;
+  --card-foreground: var(--color-deepblue-900);
+
+  --popover: #ffffff;
+  --popover-foreground: var(--color-deepblue-900);
+
+  /* Основной акцент — терракота */
+  --primary: var(--color-terracotta-500);
+  --primary-foreground: #ffffff;
+
+  /* Вторичный — песочный */
+  --secondary: var(--color-sand-100);
+  --secondary-foreground: var(--color-deepblue-900);
+
+  --muted: var(--color-sand-100);
+  --muted-foreground: var(--color-steppe-700);
+
+  /* Акцент — охра */
+  --accent: var(--color-ochre-100);
+  --accent-foreground: var(--color-terracotta-700);
+
+  --destructive: #dc2626;
+
+  --border: var(--color-sand-200);
+  --input: var(--color-sand-200);
+  --ring: var(--color-terracotta-500);
+}
+
+/* ============================================
+   ТЁМНАЯ ТЕМА
+   ============================================ */
+.dark {
+  --background: var(--color-deepblue-900);
+  --foreground: var(--color-sand-50);
+
+  --card: var(--color-deepblue-700);
+  --card-foreground: var(--color-sand-50);
+
+  --popover: var(--color-deepblue-700);
+  --popover-foreground: var(--color-sand-50);
+
+  --primary: var(--color-terracotta-500);
+  --primary-foreground: #ffffff;
+
+  --secondary: var(--color-deepblue-700);
+  --secondary-foreground: var(--color-sand-50);
+
+  --muted: var(--color-deepblue-700);
+  --muted-foreground: var(--color-sand-200);
+
+  --accent: var(--color-ochre-600);
+  --accent-foreground: var(--color-deepblue-900);
+
+  --destructive: #ef4444;
+
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: var(--color-ochre-500);
+}
+
+/* Базовые стили */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    @apply tracking-tight;
+  }
+}
+
+/* Утилита — градиент «рассвет над степью» для герой-блока */
+@utility sunrise-gradient {
+  background: linear-gradient(
+    135deg,
+    #fbe6de 0%,
+    #faf0ce 30%,
+    #e8ebe2 60%,
+    #c9b58c 100%
+  );
+}
+
+@utility sunrise-gradient-dark {
+  background: linear-gradient(
+    135deg,
+    #0a1a2e 0%,
+    #142a45 40%,
+    #86381f 90%
+  );
+}
