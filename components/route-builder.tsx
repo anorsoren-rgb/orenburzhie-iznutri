@@ -4,19 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Sparkles,
-  Loader2,
-  Clock,
-  Wallet,
-  Car,
-  Footprints,
-  Bike,
-  Route as RouteIcon,
-  AlertTriangle,
+  Sparkles, Loader2, Clock, Wallet, Car, Footprints, Bike,
+  Route as RouteIcon, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Disclaimer } from "@/components/disclaimer";
 
 type Place = {
   id: string;
@@ -182,10 +176,16 @@ export function RouteBuilder({ places }: { places: Place[] }) {
         <Card>
           <CardContent className="space-y-5 p-6">
             <div>
-              <Badge variant="secondary" className="bg-accent">
-                <RouteIcon className="mr-1 h-3 w-3" />
-                Маршрут готов
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="bg-accent">
+                  <RouteIcon className="mr-1 h-3 w-3" />
+                  Маршрут готов
+                </Badge>
+                <Badge variant="outline" className="border-primary/40 text-primary">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  Создано GigaChat
+                </Badge>
+              </div>
               <h2 className="mt-3 font-display text-2xl font-bold">
                 {route.title}
               </h2>
@@ -251,6 +251,10 @@ export function RouteBuilder({ places }: { places: Place[] }) {
                 </p>
               </div>
             )}
+
+            {/* Дисклеймер для маршрута */}
+            <Disclaimer variant="ai" />
+            <Disclaimer variant="route" />
 
             <div className="flex flex-wrap gap-2 pt-2">
               <Button
