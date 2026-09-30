@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles, MapPin, Play } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Тесты об Оренбуржье",
   description:
@@ -51,7 +53,8 @@ export default async function QuizzesPage() {
           Проверь себя
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Викторины об Оренбургской области. Проверь свои знания и узнай новое.
+          Викторины об Оренбургской области. Проверь свои знания и узнай
+          новое.
         </p>
       </header>
 
@@ -93,7 +96,7 @@ export default async function QuizzesPage() {
                           className="bg-primary/10 text-primary"
                         >
                           <Sparkles className="mr-1 h-3 w-3" />
-                          мы
+                          ИИ
                         </Badge>
                       )}
                     </div>

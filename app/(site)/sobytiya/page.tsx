@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Wallet } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "События Оренбургской области",
   description:
@@ -64,7 +66,13 @@ export default async function EventsPage() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           {upcoming.length > 0
-            ? `${upcoming.length} ${upcoming.length === 1 ? "событие" : upcoming.length >= 2 && upcoming.length <= 4 ? "события" : "событий"} впереди`
+            ? `${upcoming.length} ${
+                upcoming.length === 1
+                  ? "событие"
+                  : upcoming.length >= 2 && upcoming.length <= 4
+                  ? "события"
+                  : "событий"
+              } впереди`
             : "Афиша событий Оренбуржья"}
         </p>
       </header>
@@ -77,7 +85,8 @@ export default async function EventsPage() {
               Событий пока нет
             </p>
             <p className="max-w-md text-sm text-muted-foreground">
-              Мы собираем афишу Оренбуржья. Скоро здесь появятся первые события.
+              Мы собираем афишу Оренбуржья. Скоро здесь появятся первые
+              события.
             </p>
           </CardContent>
         </Card>

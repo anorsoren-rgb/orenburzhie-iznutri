@@ -4,13 +4,13 @@ import { PlaceCard } from "@/components/place-card";
 import { PlaceFilters } from "@/components/place-filters";
 import { MapPin } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Места Оренбургской области",
   description:
     "Все достопримечательности, природные объекты и интересные места Оренбуржья. Фильтры по категориям, сезону и стоимости.",
 };
-
-export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<{
   category?: string;
@@ -83,7 +83,6 @@ export default async function PlacesPage({
   `;
 
   const list = places;
-  const categoryList = categories ?? [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -102,7 +101,7 @@ export default async function PlacesPage({
         </p>
       </header>
 
-      <PlaceFilters categories={categoryList} />
+      <PlaceFilters categories={categories ?? []} />
 
       <div className="mt-8">
         {list.length === 0 ? (
@@ -112,8 +111,8 @@ export default async function PlacesPage({
               Пока тут пусто
             </p>
             <p className="max-w-md text-sm text-muted-foreground">
-              По этим фильтрам мест не найдено. Попробуй сбросить фильтры или
-              добавь своё место — оно появится здесь после модерации.
+              По этим фильтрам мест не найдено. Попробуй сбросить фильтры
+              или добавь своё место — оно появится здесь после модерации.
             </p>
           </div>
         ) : (
