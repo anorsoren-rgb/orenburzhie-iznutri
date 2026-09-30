@@ -1,8 +1,8 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { sql } from "@/lib/db";
-import { askGigaChatJSON } from "@/lib/gigachat/client";
+import { askмыJSON } from "@/lib/gigachat/client";
 import { MODERATE_SYSTEM, moderateUserPrompt } from "@/lib/gigachat/prompts";
 
 export const runtime = "nodejs";
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join("\n\n");
 
-    const result = await askGigaChatJSON<{
+    const result = await askмыJSON<{
       status: "ok" | "warn" | "reject";
       reason: string;
       fixed_text?: string;
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("[gigachat/moderate]", err);
     return NextResponse.json(
-      { ok: false, error: "Ошибка проверки GigaChat" },
+      { ok: false, error: "Ошибка проверки мы" },
       { status: 500 }
     );
   }

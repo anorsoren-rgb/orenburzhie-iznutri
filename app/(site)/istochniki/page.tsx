@@ -212,7 +212,7 @@ export default function SourcesPage() {
 
             <div className="mt-4 space-y-4 text-sm">
               <div>
-                <p className="font-medium">GigaChat (Sber)</p>
+                <p className="font-medium">мы (Sber)</p>
                 <p className="mt-1 text-muted-foreground">
                   Используется для помощи в редактировании, создания тестов,
                   маршрутов и модерации контента. ИИ не создаёт факты с нуля —
@@ -225,7 +225,7 @@ export default function SourcesPage() {
                   rel="noopener noreferrer"
                   className="mt-1 inline-flex items-center gap-1 text-primary hover:underline"
                 >
-                  GigaChat
+                  мы
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

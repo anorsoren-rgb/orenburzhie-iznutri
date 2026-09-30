@@ -1,30 +1,22 @@
 import imageCompression from "browser-image-compression";
-import { createClient } from "@/lib/supabase/client";
 
 const MAX_SIZE_MB = 5;
 
-// ============================================
-// СЖАТИЕ ФОТО В БРАУЗЕРЕ
-// ============================================
 async function compressImage(file: File): Promise<File> {
   const options = {
-    maxSizeMB: 0.5, // 500 КБ после сжатия
+    maxSizeMB: 0.5,
     maxWidthOrHeight: 1920,
     useWebWorker: true,
     fileType: "image/webp",
   };
-
   try {
     return await imageCompression(file, options);
   } catch {
-    // Если сжатие не удалось — вернём оригинал
     return file;
   }
 }
 
-// ============================================
-// ЗАГРУЗКА ОДНОГО ФАЙЛА
-// ============================================
+// TODO: Загрузка на VPS (S3 или локально) — пока заглушка
 export async function uploadPlaceImage(
   file: File,
   userId: string
@@ -32,39 +24,18 @@ export async function uploadPlaceImage(
   if (!file.type.startsWith("image/")) {
     throw new Error("Можно загружать только изображения");
   }
-
   if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    throw new Error(`Файл больше ${MAX_SIZE_MB} МБ. Сожми и попробуй снова.`);
+    throw new Error(`Файл больше ${MAX_SIZE_MB} МБ`);
   }
 
-  const compressed = await compressImage(file);
-  const supabase = createClient();
+  await compressImage(file);
 
-  const ext = "webp";
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const path = `${userId}/${fileName}`;
-
-  const { error } = await supabase.storage
-    .from("places")
-    .upload(path, compressed, {
-      contentType: "image/webp",
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) {
-    throw new Error(`Ошибка загрузки: ${error.message}`);
-  }
-
-  const { data } = supabase.storage.from("places").getPublicUrl(path);
-
-  return { url: data.publicUrl, path };
+  throw new Error(
+    "Загрузка фото временно недоступна. Скоро добавим!"
+  );
 }
 
-// ============================================
-// УДАЛЕНИЕ ФАЙЛА
-// ============================================
 export async function deletePlaceImage(path: string) {
-  const supabase = createClient();
-  await supabase.storage.from("places").remove([path]);
+  // Заглушка
+  return;
 }

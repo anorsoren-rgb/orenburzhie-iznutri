@@ -66,7 +66,7 @@ export default function AboutPage() {
             <CardContent className="p-5">
               <Sparkles className="h-6 w-6 text-primary" />
               <h3 className="mt-3 font-display font-semibold">
-                Помощь GigaChat
+                Помощь мы
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Умный редактор помогает оформить карточку, создать тест или

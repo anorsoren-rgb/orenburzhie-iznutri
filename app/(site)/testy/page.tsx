@@ -93,7 +93,7 @@ export default async function QuizzesPage() {
                           className="bg-primary/10 text-primary"
                         >
                           <Sparkles className="mr-1 h-3 w-3" />
-                          GigaChat
+                          мы
                         </Badge>
                       )}
                     </div>

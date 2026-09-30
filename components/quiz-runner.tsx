@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -6,12 +6,10 @@ import {
   Trophy,
   CheckCircle2,
   XCircle,
-  ArrowRight,
   RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
 
 type Question = {
   q: string;
@@ -28,111 +26,58 @@ type Props = {
 export function QuizRunner({ quizId, questions }: Props) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
-  const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(false);
   const [finished, setFinished] = useState(false);
 
   const question = questions[current];
-  const total = questions.length;
   const isCorrect = selected === question?.correct;
 
   function choose(idx: number) {
     if (answered) return;
     setSelected(idx);
     setAnswered(true);
-    if (idx === question.correct) setScore((s) => s + 1);
+    if (idx === question.correct) {
+      setScore((s) => s + 1);
+    }
   }
 
-  async function next() {
-    if (current + 1 < total) {
-      setCurrent((c) => c + 1);
-      setSelected(null);
-      setAnswered(false);
-    } else {
+  function next() {
+    if (current + 1 >= questions.length) {
       setFinished(true);
-
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        const finalScore = score + (isCorrect ? 1 : 0);
-
-        await supabase.from("quiz_results").insert({
-          quiz_id: quizId,
-          user_id: user?.id ?? null,
-          score: finalScore,
-          total,
-          answers: [],
-        });
-      } catch {
-        // не критично
-      }
+      return;
     }
+    setCurrent((c) => c + 1);
+    setSelected(null);
+    setAnswered(false);
   }
 
   function restart() {
     setCurrent(0);
     setSelected(null);
-    setAnswered(false);
     setScore(0);
+    setAnswered(false);
     setFinished(false);
   }
 
   if (finished) {
-    const percent = Math.round((score / total) * 100);
-    let emoji = "📚";
-    let title = "Надо повторить";
-    let subtitle = "Загляни в статьи о местах — узнаешь много нового.";
-
-    if (percent >= 80) {
-      emoji = "🏆";
-      title = "Знаток Оренбуржья!";
-      subtitle = "Ты отлично знаешь родной край.";
-    } else if (percent >= 50) {
-      emoji = "👍";
-      title = "Хороший результат";
-      subtitle = "Ещё немного — и будет отлично.";
-    }
-
+    const pct = Math.round((score / questions.length) * 100);
     return (
-      <Card className="border-border/60">
-        <CardContent className="space-y-6 p-8 text-center">
-          <div className="text-6xl">{emoji}</div>
-
-          <div>
-            <h2 className="font-display text-2xl font-bold">{title}</h2>
-            <p className="mt-2 text-muted-foreground">{subtitle}</p>
-          </div>
-
-          <div className="mx-auto flex max-w-xs items-center justify-center gap-6 rounded-lg bg-muted p-6">
-            <div>
-              <p className="text-3xl font-bold text-primary">{score}</p>
-              <p className="text-xs text-muted-foreground">верных</p>
-            </div>
-            <div className="h-12 w-px bg-border" />
-            <div>
-              <p className="text-3xl font-bold">{total}</p>
-              <p className="text-xs text-muted-foreground">вопросов</p>
-            </div>
-            <div className="h-12 w-px bg-border" />
-            <div>
-              <p className="text-3xl font-bold">{percent}%</p>
-              <p className="text-xs text-muted-foreground">результат</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2 pt-2">
-            <Button onClick={restart} variant="outline" className="[&_svg]:size-4">
-              <RotateCcw />
-              <span>Пройти ещё раз</span>
+      <Card>
+        <CardContent className="space-y-4 p-8 text-center">
+          <Trophy className="mx-auto h-16 w-16 text-ochre-600" />
+          <h2 className="font-display text-2xl font-bold">Тест пройден!</h2>
+          <p className="text-lg">
+            Твой результат: <strong>{score}</strong> из{" "}
+            <strong>{questions.length}</strong> ({pct}%)
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <Button onClick={restart} variant="outline">
+              <RotateCcw className="h-4 w-4" />
+              Пройти заново
             </Button>
-            <Button asChild variant="outline" className="[&_svg]:size-4">
-              <Link href="/testy">
-                <Trophy />
-                <span>Другие тесты</span>
-              </Link>
+            <Button asChild>
+              <Link href="/testy">Другие тесты</Link>
             </Button>
           </div>
         </CardContent>
@@ -140,117 +85,75 @@ export function QuizRunner({ quizId, questions }: Props) {
     );
   }
 
-  const progress = ((current + (answered ? 1 : 0)) / total) * 100;
-
   return (
-    <Card className="border-border/60">
-      <CardContent className="space-y-6 p-6">
-        <div>
-          <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              Вопрос {current + 1} из {total}
-            </span>
-            <span className="font-medium">
-              {score} {score === 1 ? "балл" : score < 5 ? "балла" : "баллов"}
-            </span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Вопрос {current + 1} из {questions.length}
+        </span>
+        <span>Правильных: {score}</span>
+      </div>
 
-        <h2 className="font-display text-xl font-semibold leading-tight">
-          {question.q}
-        </h2>
+      <Card>
+        <CardContent className="space-y-4 p-6">
+          <h2 className="font-display text-lg font-semibold">{question.q}</h2>
 
-        <div className="space-y-2">
-          {question.options.map((opt, i) => {
-            const isThisCorrect = i === question.correct;
-            const isThisSelected = i === selected;
+          <div className="space-y-2">
+            {question.options.map((opt, idx) => {
+              const isSelected = selected === idx;
+              const isRight = idx === question.correct;
 
-            let className =
-              "w-full rounded-lg border p-4 text-left transition-colors ";
+              let cls =
+                "w-full rounded-lg border border-border p-3 text-left text-sm transition-colors hover:bg-accent";
 
-            if (!answered) {
-              className += "border-border hover:bg-accent cursor-pointer";
-            } else if (isThisCorrect) {
-              className += "border-green-500 bg-green-50 dark:bg-green-950/30";
-            } else if (isThisSelected) {
-              className +=
-                "border-destructive bg-destructive/10 text-destructive";
-            } else {
-              className += "border-border opacity-60";
-            }
+              if (answered && isSelected && isRight) {
+                cls =
+                  "w-full rounded-lg border border-green-500 bg-green-500/10 p-3 text-left text-sm";
+              } else if (answered && isSelected && !isRight) {
+                cls =
+                  "w-full rounded-lg border border-destructive bg-destructive/10 p-3 text-left text-sm";
+              } else if (answered && isRight) {
+                cls =
+                  "w-full rounded-lg border border-green-500 bg-green-500/10 p-3 text-left text-sm";
+              }
 
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => choose(i)}
-                disabled={answered}
-                className={className}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${
-                      answered && isThisCorrect
-                        ? "border-green-500 bg-green-500 text-white"
-                        : answered && isThisSelected
-                        ? "border-destructive bg-destructive text-white"
-                        : "border-muted-foreground/40"
-                    }`}
-                  >
-                    {answered && isThisCorrect ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : answered && isThisSelected ? (
-                      <XCircle className="h-4 w-4" />
-                    ) : (
-                      String.fromCharCode(65 + i)
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => choose(idx)}
+                  disabled={answered}
+                  className={cls}
+                >
+                  <div className="flex items-center gap-2">
+                    {answered && isSelected && isRight && (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
                     )}
+                    {answered && isSelected && !isRight && (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>{opt}</span>
                   </div>
-                  <span className="flex-1">{opt}</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {answered && (
-          <div
-            className={`rounded-lg border p-4 ${
-              isCorrect
-                ? "border-green-500/40 bg-green-50/50 dark:bg-green-950/20"
-                : "border-destructive/40 bg-destructive/5"
-            }`}
-          >
-            <p className="text-sm">
-              <strong>
-                {isCorrect ? "✅ Верно! " : "❌ Не совсем. "}
-              </strong>
-              {question.explain}
-            </p>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {answered && (
-          <Button onClick={next} className="w-full [&_svg]:size-5" size="lg">
-            {current + 1 < total ? (
-              <>
-                <span>Следующий вопрос</span>
-                <ArrowRight />
-              </>
-            ) : (
-              <>
-                <Trophy />
-                <span>Показать результат</span>
-              </>
-            )}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+          {answered && question.explain && (
+            <div className="rounded-lg bg-muted/50 p-3 text-sm">
+              <strong>Пояснение:</strong> {question.explain}
+            </div>
+          )}
+
+          {answered && (
+            <Button onClick={next} className="w-full">
+              {current + 1 >= questions.length
+                ? "Показать результат"
+                : "Следующий вопрос"}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

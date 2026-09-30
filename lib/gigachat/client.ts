@@ -1,4 +1,4 @@
-﻿import { Agent, fetch as undiciFetch } from "undici";
+import { Agent, fetch as undiciFetch } from "undici";
 import { getRussianTrustedRootCA } from "./cert";
 
 type GigaChatMessage = {
@@ -61,7 +61,7 @@ async function getAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({ scope }).toString(),
     dispatcher: httpsAgent,
-  } as unknown as Parameters<typeof undiciFetch>[1]);
+  } as any);
 
   if (!res.ok) {
     const text = await res.text();
@@ -87,7 +87,7 @@ export async function gigachatChat(
   const token = await getAccessToken();
   const apiUrl =
     process.env.GIGACHAT_API_URL ?? "https://api.giga.chat/v1";
-  const model = req.model ?? process.env.GIGACHAT_MODEL ?? "GigaChat";
+  const model = req.model ?? process.env.GIGACHAT_MODEL ?? "GigaChat-2";
 
   const res = await undiciFetch(`${apiUrl}/chat/completions`, {
     method: "POST",
@@ -103,7 +103,7 @@ export async function gigachatChat(
       max_tokens: req.max_tokens ?? 1024,
     }),
     dispatcher: httpsAgent,
-  } as unknown as Parameters<typeof undiciFetch>[1]);
+  } as any);
 
   if (!res.ok) {
     const text = await res.text();

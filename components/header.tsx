@@ -71,7 +71,7 @@ export function Header() {
           <span>Оренбуржье изнутри</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="flex items-center gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}

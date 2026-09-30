@@ -1,6 +1,5 @@
 ﻿import Link from "next/link";
 import { Hero } from "@/components/hero";
-import { ChatWidget } from "@/components/chat-widget";
 import { PlaceCard, type Place } from "@/components/place-card";
 import { SectionHeader } from "@/components/section-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -138,7 +137,6 @@ export default function HomePage() {
 
           <aside className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              <ChatWidget />
             </div>
           </aside>
         </section>
@@ -244,7 +242,7 @@ export default function HomePage() {
                 Не знаешь, с чего начать?
               </h2>
               <p className="max-w-xl text-foreground/80">
-                Выбери 3–5 мест — GigaChat соберёт маршрут с таймингом, бюджетом и
+                Выбери 3–5 мест — Мы соберём маршрут с таймингом, бюджетом и
                 советами. Экспортируй в PDF или GPX для навигатора.
               </p>
               <Button asChild size="lg" className="mt-2">

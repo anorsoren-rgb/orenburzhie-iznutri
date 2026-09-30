@@ -30,12 +30,9 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-display text-lg font-bold">Оренбуржье изнутри</h3>
             <p className="mt-3 text-sm text-muted-foreground">
-              Народный гид по Орску и Оренбургской области. Места, легенды, маршруты.
+              Народный гид по Оренбургской области. Места, легенды, маршруты.
             </p>
             <p className="mt-3 text-xs text-muted-foreground">
-              ИП Михайлова А. А.<br />
-              ОГРНИП 326565800014721<br />
-              ИНН 564402086906
             </p>
           </div>
 

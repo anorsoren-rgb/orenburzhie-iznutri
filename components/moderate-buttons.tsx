@@ -54,13 +54,13 @@ export function ModerateButtons({ placeId }: { placeId: string }) {
       const reason = data.result?.reason;
 
       if (status === "ok") {
-        setMessage("✅ GigaChat: всё чисто, можно публиковать");
+        setMessage("✅ мы: всё чисто, можно публиковать");
       } else if (status === "warn") {
-        setMessage(`⚠️ GigaChat: ${reason ?? "есть замечания"}`);
+        setMessage(`⚠️ мы: ${reason ?? "есть замечания"}`);
       } else if (status === "reject") {
-        setMessage(`❌ GigaChat: ${reason ?? "рекомендуется отклонить"}`);
+        setMessage(`❌ мы: ${reason ?? "рекомендуется отклонить"}`);
       } else {
-        setMessage("GigaChat ответил нестандартно");
+        setMessage("мы ответил нестандартно");
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Ошибка проверки");
@@ -112,7 +112,7 @@ export function ModerateButtons({ placeId }: { placeId: string }) {
         ) : (
           <Sparkles />
         )}
-        <span>Проверить GigaChat</span>
+        <span>Проверить мы</span>
       </Button>
 
       {message && (

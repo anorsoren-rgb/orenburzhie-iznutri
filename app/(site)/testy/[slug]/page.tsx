@@ -106,7 +106,7 @@ export default async function QuizPage({
           {quiz.created_by_gigachat && (
             <Badge variant="secondary" className="bg-primary/10 text-primary">
               <Sparkles className="mr-1 h-3 w-3" />
-              Создано GigaChat
+              Создано мы
             </Badge>
           )}
         </div>

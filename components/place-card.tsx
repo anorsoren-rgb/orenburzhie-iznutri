@@ -61,7 +61,7 @@ export function PlaceCard({ place, className, priority = false }: Props) {
                 className="border-primary/40 bg-background/90 text-primary backdrop-blur"
               >
                 <Sparkles className="mr-1 h-3 w-3" />
-                Создано GigaChat
+                Создано мы
               </Badge>
             )}
           </div>

@@ -1,7 +1,9 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -47,9 +49,13 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${manrope.variable} font-sans antialiased`}
+        className={`${inter.variable} ${manrope.variable} flex min-h-screen flex-col font-sans antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

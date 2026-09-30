@@ -6,7 +6,7 @@
 //  .env.local должно быть:
 // DATABASE_URL=postgresql://appuser:OrskApp2026Pass@127.0.0.1:5432/orenburzhie
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString: string = process.env.DATABASE_URL ?? "";
 
 if (!connectionString) {
   throw new Error(

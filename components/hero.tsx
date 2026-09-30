@@ -10,7 +10,7 @@ export function Hero() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/60 px-4 py-1.5 text-sm backdrop-blur">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span>Умный гид на базе GigaChat</span>
+            <span>Народный гид по Оренбуржью</span>
           </div>
 
           <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
@@ -22,7 +22,7 @@ export function Hero() {
 
           <p className="mt-6 text-lg text-foreground/80 sm:text-xl">
             Места, легенды, маршруты и события Орска и Оренбургской области —
-            от местных жителей. Спроси про Орск — и получи живой ответ.
+            от местных жителей. Народный гид — и получи живой ответ.
           </p>
 
           {/* Поиск */}
