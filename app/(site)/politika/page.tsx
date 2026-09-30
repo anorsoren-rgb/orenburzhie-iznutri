@@ -1,137 +1,203 @@
 ﻿import type { Metadata } from "next";
-import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Shield } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Политика конфиденциальности",
   description:
-    "Политика обработки персональных данных сайта «Оренбуржье изнутри» в соответствии с Федеральным законом №152-ФЗ.",
+    "Политика конфиденциальности проекта «Оренбуржье изнутри». Как мы собираем, используем и защищаем персональные данные.",
 };
 
-export default function PolicyPage() {
+export default function PrivacyPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">
-        Политика конфиденциальности
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Последнее обновление: 14 сентября 2026 г.
-      </p>
-
-      <div className="prose prose-neutral dark:prose-invert mt-8 max-w-none text-base leading-relaxed">
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          1. Общие положения
-        </h2>
-        <p className="mt-3">
-          Настоящая Политика обработки персональных данных (далее — Политика)
-          составлена в соответствии с требованиями Федерального закона от
-          27.07.2006 № 152-ФЗ «О персональных данных» и определяет порядок
-          обработки персональных данных и меры по обеспечению безопасности
-          персональных данных, предпринимаемые администрацией сайта
-          «Оренбуржье изнутри» (далее — Оператор).
+      <header className="mb-8">
+        <Badge variant="secondary" className="bg-accent">
+          <Shield className="mr-1 h-3 w-3" />
+          Документ
+        </Badge>
+        <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+          Политика конфиденциальности
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Последнее обновление: 30 сентября 2026
         </p>
-        <p className="mt-3">
-          Оператор ставит своей важнейшей целью и условием осуществления своей
-          деятельности соблюдение прав и свобод человека и гражданина при
-          обработке его персональных данных, в том числе защиты прав на
-          неприкосновенность частной жизни, личную и семейную тайну.
-        </p>
+      </header>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          2. Какие данные мы собираем
-        </h2>
-        <p className="mt-3">Оператор обрабатывает следующие персональные данные:</p>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>адрес электронной почты (email);</li>
-          <li>имя или псевдоним (username, full_name);</li>
-          <li>пароль (в хешированном виде, недоступен даже администрации);</li>
-          <li>фотографии и тексты, публикуемые пользователем по своей воле;</li>
-          <li>
-            технические данные: IP-адрес, user-agent, cookies — собираются
-            автоматически для обеспечения работы сайта и защиты от спама.
-          </li>
-        </ul>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              1. Общие положения
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Настоящая политика конфиденциальности (далее — «Политика»)
+              определяет порядок обработки и защиты персональных данных
+              пользователей сайта{" "}
+              <strong>orenburzhie-iznutri.ru</strong> (далее — «Сайт»).
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Политика разработана в соответствии с Федеральным законом от
+              27.07.2006 № 152-ФЗ «О персональных данных».
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          3. Цели обработки
-        </h2>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>регистрация и авторизация на сайте;</li>
-          <li>публикация пользовательского контента (мест, легенд, событий);</li>
-          <li>модерация контента и связь с авторами;</li>
-          <li>улучшение работы сайта на основе обезличенной статистики;</li>
-          <li>предотвращение спама, злоупотреблений и мошенничества.</li>
-        </ul>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              2. Какие данные мы собираем
+            </h2>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  <strong>Email</strong> — для регистрации и связи
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  <strong>Имя</strong> — для отображения в профиле
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  <strong>Хеш пароля</strong> — для входа в аккаунт (в
+                  открытом виде не хранится)
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  <strong>Контент</strong> — места, легенды, фотографии,
+                  которые вы добавляете
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  <strong>Технические данные</strong> — cookies, IP-адрес,
+                  user-agent (для аналитики)
+                </span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          4. Правовые основания
-        </h2>
-        <p className="mt-3">
-          Оператор обрабатывает персональные данные пользователя только в случае
-          их отправки пользователем через формы на сайте. Отправляя свои данные,
-          пользователь выражает согласие с данной Политикой.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              3. Зачем мы собираем данные
+            </h2>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Регистрация и вход в личный кабинет</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Публикация контента от вашего имени</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Связь с вами по вопросам модерации</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Улучшение работы сайта (аналитика)</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          5. Порядок и условия обработки
-        </h2>
-        <p className="mt-3">
-          Обработка персональных данных осуществляется с согласия субъекта
-          персональных данных на обработку его персональных данных. Данные
-          хранятся на серверах Supabase (PostgreSQL) и не передаются третьим
-          лицам, за исключением случаев, предусмотренных законодательством РФ.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              4. Где хранятся данные
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Все персональные данные хранятся на серверах, расположенных на
+              территории Российской Федерации. Это соответствует
+              требованиям 152-ФЗ о локализации персональных данных.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          6. Сроки обработки
-        </h2>
-        <p className="mt-3">
-          Персональные данные обрабатываются до достижения целей обработки.
-          Пользователь может в любой момент удалить свой аккаунт и все связанные
-          данные, обратившись к администрации.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              5. Кто имеет доступ к данным
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Доступ к персональным данным имеет только администрация сайта.
+              Мы не передаём данные третьим лицам, за исключением случаев,
+              предусмотренных законодательством РФ.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          7. Права пользователя
-        </h2>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>получить информацию об обработке своих персональных данных;</li>
-          <li>требовать уточнения, блокирования или уничтожения данных;</li>
-          <li>отозвать согласие на обработку персональных данных;</li>
-          <li>обжаловать действия Оператора в Роскомнадзоре или в суде.</li>
-        </ul>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              6. Cookies и аналитика
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Сайт использует cookies для работы сессий и анонимной
+              аналитики (Яндекс.Метрика). Cookies не содержат персональных
+              данных и не передаются третьим лицам.
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Ты можешь отключить cookies в настройках браузера, но тогда
+              часть функций сайта может не работать.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          8. Cookies и аналитика
-        </h2>
-        <p className="mt-3">
-          Сайт использует cookies для аутентификации и сохранения предпочтений
-          (например, выбранной темы оформления). Для анализа посещаемости
-          используется Яндекс.Метрика — сервис, работающий в соответствии с
-          политикой конфиденциальности Яндекса.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              7. Твои права
+            </h2>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Узнать, какие данные о тебе хранятся</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Исправить неточные данные</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Удалить аккаунт и все данные</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Отозвать согласие на обработку данных</span>
+              </li>
+            </ul>
+            <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+              Для реализации своих прав напиши нам на почту, указанную в
+              подвале сайта.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          9. Контакты
-        </h2>
-        <p className="mt-3">
-          По вопросам обработки персональных данных обращайтесь по адресу:{" "}
-          <a
-            href="mailto:hello@orenburzhie-iznutri.ru"
-            className="text-primary hover:underline"
-          >
-            hello@orenburzhie-iznutri.ru
-          </a>
-          .
-        </p>
-      </div>
-
-      <div className="mt-12 flex justify-center">
-        <Link
-          href="/"
-          className="text-sm text-primary hover:underline"
-        >
-          ← На главную
-        </Link>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              8. Изменения в политике
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Мы можем обновлять эту политику. Актуальная версия всегда
+              доступна на этой странице. При существенных изменениях
+              уведомим пользователей на главной странице.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </article>
   );

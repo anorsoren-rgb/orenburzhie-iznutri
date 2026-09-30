@@ -31,7 +31,7 @@ export function RegisterForm({ nextUrl }: { nextUrl?: string }) {
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "шибка регистрации");
+        throw new Error(data.error ?? "Ошибка регистрации");
       }
 
       const signInResult = await signIn("credentials", {
@@ -41,13 +41,15 @@ export function RegisterForm({ nextUrl }: { nextUrl?: string }) {
       });
 
       if (signInResult?.error) {
-        throw new Error("ккаунт создан, но не удалось войти. айди вручную.");
+        throw new Error(
+          "Аккаунт создан, но не удалось войти. Войди вручную."
+        );
       }
 
       router.push(nextUrl ?? "/profil");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "шибка");
+      setError(err instanceof Error ? err.message : "Ошибка");
       setLoading(false);
     }
   }
@@ -58,13 +60,13 @@ export function RegisterForm({ nextUrl }: { nextUrl?: string }) {
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="text-sm font-medium" htmlFor="name">
-              мя
+              Имя
             </label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="ак тебя зовут?"
+              placeholder="Как тебя зовут?"
               required
               maxLength={100}
               className="mt-1"
@@ -88,7 +90,7 @@ export function RegisterForm({ nextUrl }: { nextUrl?: string }) {
 
           <div>
             <label className="text-sm font-medium" htmlFor="password">
-              ароль (минимум 8 символов)
+              Пароль (минимум 8 символов)
             </label>
             <Input
               id="password"
@@ -126,9 +128,9 @@ export function RegisterForm({ nextUrl }: { nextUrl?: string }) {
         )}
 
         <p className="text-center text-sm text-muted-foreground">
-          же есть аккаунт?{" "}
+          Уже есть аккаунт?{" "}
           <Link href="/login" className="text-primary hover:underline">
-            ойти
+            Войти
           </Link>
         </p>
       </CardContent>

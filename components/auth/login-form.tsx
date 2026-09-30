@@ -28,7 +28,7 @@ export function LoginForm({ nextUrl }: { nextUrl?: string }) {
     });
 
     if (res?.error) {
-      setError("еверный email или пароль");
+      setError("Неверный email или пароль");
       setLoading(false);
       return;
     }
@@ -57,7 +57,7 @@ export function LoginForm({ nextUrl }: { nextUrl?: string }) {
 
           <div>
             <label className="text-sm font-medium" htmlFor="password">
-              ароль
+              Пароль
             </label>
             <Input
               id="password"
@@ -78,12 +78,12 @@ export function LoginForm({ nextUrl }: { nextUrl?: string }) {
             {loading ? (
               <>
                 <Loader2 className="animate-spin" />
-                <span>ходим...</span>
+                <span>Входим...</span>
               </>
             ) : (
               <>
                 <LogIn />
-                <span>ойти</span>
+                <span>Войти</span>
               </>
             )}
           </Button>
@@ -94,9 +94,9 @@ export function LoginForm({ nextUrl }: { nextUrl?: string }) {
         )}
 
         <p className="text-center text-sm text-muted-foreground">
-          ет аккаунта?{" "}
+          Нет аккаунта?{" "}
           <Link href="/register" className="text-primary hover:underline">
-            арегистрироваться
+            Зарегистрироваться
           </Link>
         </p>
       </CardContent>

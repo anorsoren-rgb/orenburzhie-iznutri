@@ -1,257 +1,305 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { Camera, BookOpen, Map, Sparkles, ExternalLink } from "lucide-react";
+import {
+  Camera,
+  BookOpen,
+  Map as MapIcon,
+  Scale,
+  Users,
+  Globe,
+  Landmark,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Источники и лицензии",
   description:
-    "Источники фотографий, текстов, карт и данных, использованных на сайте «Оренбуржье изнутри». Лицензии и авторы.",
+    "Правовая информация о фотографических, текстовых и картографических материалах, размещённых на сайте «Оренбуржье изнутри». Лицензии и порядок указания авторства.",
 };
 
 export default function SourcesPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="mb-8">
-        <h1 className="font-display text-3xl font-bold sm:text-4xl">
+        <Badge variant="secondary" className="bg-accent">
+          <Scale className="mr-1 h-3 w-3" />
+          Правовая информация
+        </Badge>
+        <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
           Источники и лицензии
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Мы уважаем авторское право и указываем всех, чьими материалами
-          пользуемся. Если ты автор и хочешь что-то изменить или удалить —{" "}
+          Администрация сайта уважает авторские и смежные права. На этой
+          странице описаны источники материалов, размещённых на сайте, и
+          порядок указания авторства. Если вы являетесь правообладателем и
+          хотите изменить или удалить материал —{" "}
           <Link href="/o-proekte" className="text-primary hover:underline">
-            напиши нам
+            свяжитесь с нами
           </Link>
           .
         </p>
       </header>
 
       <div className="space-y-6">
-        {/* Фотографии */}
+        {/* ФОТОГРАФИИ */}
         <Card className="border-border/60">
-          <CardContent className="p-6">
+          <CardContent className="space-y-4 p-6">
             <div className="flex items-center gap-2">
               <Camera className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold">
-                Фотографии
+                Фотографические материалы
               </h2>
             </div>
 
-            <div className="mt-4 space-y-4 text-sm">
+            <p className="text-sm text-foreground/90">
+              Сайт использует фотографии из нескольких источников. Автор
+              каждого конкретного снимка указывается непосредственно под
+              фотографией или на странице материала.
+            </p>
+
+            <div className="space-y-4 text-sm">
+              {/* 1. Пользователи сайта */}
               <div>
-                <p className="font-medium">stepper88 / FotoTerra</p>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Фотографии, загруженные пользователями Сайта
+                  </p>
+                </div>
                 <p className="mt-1 text-muted-foreground">
-                  Фотографии природы Оренбургской области: Губерлинские горы,
-                  Ириклинское водохранилище, окрестности Орска и Новотроицка.
+                  <strong>Категория материалов:</strong> фотографии, которые
+                  пользователи загружают через форму добавления материала.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Лицензия:{" "}
-                  <a
-                    href="https://creativecommons.org/licenses/by/3.0/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    CC BY 3.0
-                  </a>{" "}
-                  — свободное использование с указанием автора.
-                </p>
-                <a
-                  href="https://fototerra.ru/Russia/Novotroitsk/Stepper88-10528.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  Галерея автора на FotoTerra
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-
-              <div className="border-t border-border/60 pt-4">
-                <p className="font-medium">Unsplash</p>
-                <p className="mt-1 text-muted-foreground">
-                  Фотографии природы, степей, закатов, рек.
+                  <strong>Условия использования:</strong> материалы
+                  публикуются исключительно с согласия правообладателя.
+                  Загружая фотографию, пользователь подтверждает, что
+                  является её автором или обладает разрешением
+                  правообладателя на публикацию.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Лицензия:{" "}
-                  <a
-                    href="https://unsplash.com/license"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    Unsplash License
-                  </a>{" "}
-                  — свободное использование, указание автора не обязательно, но
-                  мы стараемся указывать.
+                  <strong>Указание авторства:</strong> автор фотографии
+                  указывается на странице материала в подписи к снимку.
                 </p>
               </div>
 
+              {/* 2. Свободные лицензии */}
               <div className="border-t border-border/60 pt-4">
-                <p className="font-medium">Pexels</p>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Фотографии под свободными лицензиями
+                  </p>
+                </div>
                 <p className="mt-1 text-muted-foreground">
-                  Стоковые фотографии природы и путешествий.
+                  <strong>Категория материалов:</strong> фотографии,
+                  размещённые в открытых фотостоках и на платформах с
+                  лицензиями Creative Commons.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Лицензия:{" "}
-                  <a
-                    href="https://www.pexels.com/license/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    Pexels License
-                  </a>{" "}
-                  — свободное использование без указания автора.
+                  <strong>Лицензии:</strong> Creative Commons Attribution
+                  (CC BY) различных версий, Unsplash License, Pexels
+                  License, CC0 (Public Domain).
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Указание авторства:</strong> для фотографий под
+                  лицензиями, требующими атрибуции (CC BY), имя автора и
+                  ссылка на лицензию указываются на странице материала.
+                  Для фотографий без требования атрибуции (CC0, Unsplash,
+                  Pexels) указание автора — по желанию.
                 </p>
               </div>
 
+              {/* 3. Собственные фотографии */}
               <div className="border-t border-border/60 pt-4">
-                <p className="font-medium">Фотографии пользователей</p>
+                <div className="flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Собственные фотографии команды проекта
+                  </p>
+                </div>
                 <p className="mt-1 text-muted-foreground">
-                  Фото, загруженные авторами проекта «Оренбуржье изнутри»,
-                  публикуются с их согласия. Автор указан на странице места.
+                  <strong>Категория материалов:</strong> снимки, сделанные
+                  авторами проекта «Оренбуржье изнутри» во время
+                  путешествий и съёмок.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Условия использования:</strong> все права
+                  принадлежат авторам. Использование возможно только с
+                  письменного разрешения администрации Сайта.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Тексты и данные */}
+        {/* ТЕКСТЫ */}
         <Card className="border-border/60">
-          <CardContent className="p-6">
+          <CardContent className="space-y-4 p-6">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold">
-                Тексты и данные
+                Текстовые материалы и данные
               </h2>
             </div>
 
-            <div className="mt-4 space-y-4 text-sm">
+            <div className="space-y-4 text-sm">
               <div>
-                <p className="font-medium">Материалы пользователей</p>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Авторские тексты пользователей Сайта
+                  </p>
+                </div>
                 <p className="mt-1 text-muted-foreground">
-                  Истории, легенды и описания мест, добавленные авторами сайта.
-                  При использовании указывайте ссылку на источник.
+                  <strong>Категория материалов:</strong> описания мест,
+                  легенды, истории, маршруты, добавленные пользователями.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Условия использования:</strong> при
+                  цитировании обязательна ссылка на Сайт{" "}
+                  <strong>orenburzhie-iznutri.ru</strong> и на страницу
+                  первоисточника.
                 </p>
               </div>
 
               <div className="border-t border-border/60 pt-4">
-                <p className="font-medium">
-                  Народные предания и легенды Оренбуржья
+                <div className="flex items-center gap-2">
+                  <Landmark className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Фольклорные тексты и народные предания
+                  </p>
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Правовой статус:</strong> произведения народного
+                  творчества, записи XIX–XX вв. являются общественным
+                  достоянием в соответствии со статьёй 1282 Гражданского
+                  кодекса РФ.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Записи фольклорных экспедиций, краеведческие публикации
-                  XIX–XX вв. Фольклорные тексты являются общественным
-                  достоянием.
+                  <strong>Условия использования:</strong> свободное
+                  использование без ограничений.
                 </p>
               </div>
 
               <div className="border-t border-border/60 pt-4">
-                <p className="font-medium">Энциклопедические данные</p>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  <p className="font-medium">
+                    Энциклопедические и справочные данные
+                  </p>
+                </div>
                 <p className="mt-1 text-muted-foreground">
-                  Факты о географии, истории и культуре Оренбургской области
-                  сверены с открытыми источниками:{" "}
+                  <strong>Источники:</strong> открытые энциклопедии под
+                  свободными лицензиями, официальные сайты государственных
+                  органов, краеведческие публикации.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Условия использования:</strong> материалы под
+                  лицензией{" "}
                   <a
-                    href="https://ruwiki.ru"
+                    href="https://creativecommons.org/licenses/by-sa/4.0/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    Рувики
+                    CC BY-SA 4.0
                   </a>{" "}
-                  (CC BY 4.0), официальные сайты музеев и администраций.
+                  используются с обязательным указанием источника и
+                  сохранением производных материалов под аналогичной
+                  лицензией.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Карты */}
+        {/* КАРТЫ */}
         <Card className="border-border/60">
-          <CardContent className="p-6">
+          <CardContent className="space-y-4 p-6">
             <div className="flex items-center gap-2">
-              <Map className="h-5 w-5 text-primary" />
+              <MapIcon className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold">
                 Картографические данные
               </h2>
             </div>
 
-            <div className="mt-4 space-y-4 text-sm">
+            <div className="space-y-4 text-sm">
               <div>
-                <p className="font-medium">OpenStreetMap</p>
-                <p className="mt-1 text-muted-foreground">
-                  Основа для всех карт на сайте (Leaflet + OSM).
+                <p className="font-medium">
+                  Правообладатель: OpenStreetMap contributors
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Лицензия:{" "}
+                  <strong>Категория материалов:</strong>{" "}
+                  картографические данные, используемые в основе
+                  интерактивных карт Сайта (Leaflet + OpenStreetMap).
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Лицензия:</strong>{" "}
                   <a
                     href="https://www.openstreetmap.org/copyright"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    ODbL 1.0
-                  </a>{" "}
-                  — открытая картографическая лицензия.
+                    Open Database License (ODbL) 1.0
+                  </a>
+                  .
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>Условия использования:</strong> допускается
+                  копирование, распространение и адаптация данных при
+                  обязательном указании авторства OpenStreetMap
+                  contributors и сохранении производных баз данных под
+                  аналогичной лицензией.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* ИИ */}
-        <Card className="border-border/60">
-          <CardContent className="p-6">
+        {/* ОБРАЩЕНИЕ ПРАВООБЛАДАТЕЛЯМ */}
+        <Card className="border-border/60 bg-muted/40">
+          <CardContent className="space-y-3 p-6 text-sm">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="font-display text-xl font-semibold">
-                Искусственный интеллект
+              <Scale className="h-5 w-5 text-primary" />
+              <h2 className="font-display text-lg font-semibold">
+                Обращение правообладателей
               </h2>
             </div>
-
-            <div className="mt-4 space-y-4 text-sm">
-              <div>
-                <p className="font-medium">мы (Sber)</p>
-                <p className="mt-1 text-muted-foreground">
-                  Используется для помощи в редактировании, создания тестов,
-                  маршрутов и модерации контента. ИИ не создаёт факты с нуля —
-                  он работает с материалами, добавленными пользователями и
-                  проверенными редакцией.
-                </p>
-                <a
-                  href="https://giga.chat/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  мы
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </div>
+            <p className="text-muted-foreground">
+              Если вы обнаружили на сайте материал, нарушающий ваши
+              авторские или смежные права, направьте обращение
+              администрации сайта с указанием:
+            </p>
+            <ul className="space-y-1.5 text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>сведений о правообладателе (ФИО, контакты);</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>описания материала и его расположения на сайте;</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>подтверждения ваших прав на материал;</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  требования (удаление, указание авторства, корректировка).
+                </span>
+              </li>
+            </ul>
+            <p className="text-muted-foreground">
+              Обращения рассматриваются в течение 10 рабочих дней.
+              Администрация готова к досудебному урегулированию споров и
+              незамедлительно реагирует на обоснованные претензии.
+            </p>
           </CardContent>
         </Card>
-
-        {/* Обратная связь */}
-        <div className="rounded-lg border border-border/60 bg-muted/40 p-6 text-sm">
-          <p className="font-medium">
-            Ты автор и хочешь что-то изменить?
-          </p>
-          <p className="mt-2 text-muted-foreground">
-            Если ты нашёл своё фото, текст или данные без указания авторства —
-            напиши нам на почту, и мы немедленно исправим или удалим материал.
-            Мы за открытость и уважение к авторам.
-          </p>
-          <p className="mt-2">
-            <a
-              href="mailto:hello@orenburzhie-iznutri.ru"
-              className="text-primary hover:underline"
-            >
-              hello@orenburzhie-iznutri.ru
-            </a>
-          </p>
-        </div>
       </div>
     </article>
   );

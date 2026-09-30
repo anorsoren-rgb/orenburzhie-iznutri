@@ -1,228 +1,208 @@
 ﻿import type { Metadata } from "next";
-import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Пользовательское соглашение",
   description:
-    "Правила использования сайта «Оренбуржье изнутри». Права и обязанности пользователей, правила публикации контента, ограничение ответственности.",
+    "Пользовательское соглашение проекта «Оренбуржье изнутри». Правила использования сайта, публикации контента и модерации.",
 };
 
 export default function TermsPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">
-        Пользовательское соглашение
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Последнее обновление: 14 сентября 2026 г.
-      </p>
+      <header className="mb-8">
+        <Badge variant="secondary" className="bg-accent">
+          <FileText className="mr-1 h-3 w-3" />
+          Документ
+        </Badge>
+        <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+          Пользовательское соглашение
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Последнее обновление: 30 сентября 2026
+        </p>
+      </header>
 
-      <div className="prose prose-neutral dark:prose-invert mt-8 max-w-none text-base leading-relaxed">
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          1. Общие положения
-        </h2>
-        <p className="mt-3">
-          Настоящее Пользовательское соглашение (далее — Соглашение) регулирует
-          отношения между Индивидуальным предпринимателем Михайловой Анжелой
-          Анатольевной (ОГРНИП 326565800014721, ИНН 564402086906) (далее —
-          Администрация) и любым лицом, использующим сайт «Оренбуржье изнутри»
-          (далее — Сайт).
-        </p>
-        <p className="mt-3">
-          Использование Сайта любым способом, включая просмотр страниц,
-          регистрацию, публикацию контента, означает полное и безоговорочное
-          согласие пользователя с настоящим Соглашением.
-        </p>
-        <p className="mt-3">
-          В случае несогласия с условиями Соглашения пользователь обязан
-          прекратить использование Сайта.
-        </p>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              1. Общие положения
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Настоящее Пользовательское соглашение (далее — «Соглашение»)
+              регулирует отношения между администрацией сайта{" "}
+              <strong>orenburzhie-iznutri.ru</strong> (далее — «Сайт») и
+              пользователями Сайта.
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Используя Сайт, ты соглашаешься с условиями настоящего
+              Соглашения. Если не согласен — пожалуйста, не используй Сайт.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          2. Предмет соглашения
-        </h2>
-        <p className="mt-3">
-          Сайт «Оренбуржье изнутри» — это информационный ресурс, на котором
-          пользователи публикуют сведения о местах, легендах, маршрутах и
-          событиях Орска и Оренбургской области. Сайт использует нейросеть
-          мы (ПАО Сбербанк) для помощи в создании и оформлении контента.
-        </p>
-        <p className="mt-3">
-          Сайт предоставляется на условиях «как есть» (as is). Администрация не
-          гарантирует бесперебойную работу Сайта, отсутствие ошибок и
-          сохранность пользовательского контента.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              2. Что можно делать на Сайте
+            </h2>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Читать материалы без регистрации</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  Зарегистрироваться и добавлять места, легенды, события,
+                  фотографии
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Собирать маршруты из мест</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Комментировать материалы и оставлять отзывы</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          3. Регистрация и аккаунт
-        </h2>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>
-            Для публикации контента требуется регистрация. При регистрации
-            пользователь обязуется предоставить достоверные данные.
-          </li>
-          <li>
-            Пользователь несёт ответственность за сохранность своего пароля и
-            за все действия, совершённые под его аккаунтом.
-          </li>
-          <li>
-            Запрещается регистрация от имени других лиц, а также создание
-            аккаунтов для спама, рекламы или иной противоправной деятельности.
-          </li>
-          <li>
-            Администрация вправе заблокировать или удалить аккаунт
-            пользователя при нарушении настоящего Соглашения.
-          </li>
-        </ul>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              3. Что запрещено
+            </h2>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                <span>
+                  Публиковать ложную, оскорбительную, экстремистскую
+                  информацию
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                <span>Загружать чужие фотографии без разрешения авторов</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                <span>
+                  Размещать рекламу, спам, ссылки на запрещённые ресурсы
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                <span>
+                  Публиковать персональные данные третьих лиц без их согласия
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                <span>Нарушать авторские права</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          4. Правила публикации контента
-        </h2>
-        <p className="mt-3">Пользователь обязуется не публиковать:</p>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>
-            материалы, нарушающие законодательство РФ, в том числе
-            экстремистские, разжигающие рознь, содержащие призывы к насилию;
-          </li>
-          <li>
-            нецензурную лексику, оскорбления, клевету, угрозы;
-          </li>
-          <li>спам, скрытую рекламу, фишинговые ссылки;</li>
-          <li>
-            чужие персональные данные без согласия субъекта;
-          </li>
-          <li>
-            изображения и тексты, защищённые авторским правом, без разрешения
-            правообладателя;
-          </li>
-          <li>
-            заведомо ложную информацию, вводящую пользователей в заблуждение.
-          </li>
-        </ul>
-        <p className="mt-3">
-          Администрация оставляет за собой право удалять любой контент без
-          объяснения причин, а также передавать сведения о нарушениях в
-          правоохранительные органы.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              4. Права на контент
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Ты сохраняешь авторские права на контент, который публикуешь на
+              Сайте. Публикуя материал, ты даёшь администрации Сайта право
+              на его использование, отображение и распространение в рамках
+              работы Сайта.
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Ты гарантируешь, что твой контент не нарушает права третьих
+              лиц и не содержит запрещённой информации.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          5. Права на контент
-        </h2>
-        <p className="mt-3">
-          Публикуя контент на Сайте, пользователь:
-        </p>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>
-            подтверждает, что обладает всеми необходимыми правами на этот
-            контент, и что публикация не нарушает права третьих лиц;
-          </li>
-          <li>
-            предоставляет Администрации неисключительную, безвозмездную
-            лицензию на использование, воспроизведение, распространение и
-            переработку контента в целях работы Сайта;
-          </li>
-          <li>
-            сохраняет личные неимущественные права на свой контент (авторство
-            указывается на странице материала).
-          </li>
-        </ul>
-        <p className="mt-3">
-          Контент, сгенерированный нейросетью мы, помечается на Сайте
-          специальным бейджем «Создано мы». Администрация не гарантирует
-          точность такого контента.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              5. Модерация
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Администрация оставляет за собой право:
+            </p>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Проверять любой добавленный контент</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Отклонять материалы без объяснения причин</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Редактировать текст (с сохранением смысла)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Блокировать пользователей за нарушения</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          6. Использование нейросети мы
-        </h2>
-        <p className="mt-3">
-          Сайт использует API нейросети мы (ПАО Сбербанк). Ответственность
-          за работу модели мы несёт её разработчик. Администрация не
-          является разработчиком нейросети и использует её на условиях
-          публичной оферты API.
-        </p>
-        <p className="mt-3">
-          Сгенерированный ИИ контент может содержать неточности, ошибки и
-          вымышленные сведения. Администрация рекомендует проверять факты
-          самостоятельно.
-        </p>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              6. Ответственность
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Сайт предоставляется «как есть». Администрация не несёт
+              ответственности за:
+            </p>
+            <ul className="space-y-2 text-sm text-foreground/90">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  Точность информации, добавленной пользователями
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>
+                  Возможные последствия использования информации с Сайта
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>Временные перебои в работе Сайта</span>
+              </li>
+            </ul>
+            <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+              Перед поездкой в незнакомое место всегда проверяй информацию
+              самостоятельно.
+            </p>
+          </CardContent>
+        </Card>
 
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          7. Ограничение ответственности
-        </h2>
-        <p className="mt-3">
-          Вся информация на Сайте предоставляется <strong>в ознакомительных
-          целях</strong> и носит <strong>рекомендательный характер</strong>.
-        </p>
-        <p className="mt-3">
-          Администрация <strong>не несёт ответственности</strong> за:
-        </p>
-        <ul className="mt-3 list-disc space-y-1 pl-6">
-          <li>
-            возможный вред здоровью, жизни или имуществу пользователей в
-            результате посещения мест, следования по маршрутам или участия в
-            событиях, описанных на Сайте;
-          </li>
-          <li>
-            точность, актуальность и полноту информации о местах, маршрутах и
-            событиях;
-          </li>
-          <li>
-            последствия использования информации, сгенерированной нейросетью
-            мы;
-          </li>
-          <li>
-            действия третьих лиц, организаторов событий, владельцев мест и
-            заведений;
-          </li>
-          <li>
-            перерывы в работе Сайта, потерю данных, любые прямые или косвенные
-            убытки.
-          </li>
-        </ul>
-        <p className="mt-3">
-          Посещение мест и следование маршрутам осуществляется{" "}
-          <strong>на собственный риск пользователя</strong>.
-        </p>
-
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          8. Изменение условий
-        </h2>
-        <p className="mt-3">
-          Администрация вправе в любой момент изменять условия настоящего
-          Соглашения без предварительного уведомления. Новая редакция вступает
-          в силу с момента её размещения на Сайте. Продолжение использования
-          Сайта означает согласие с новой редакцией.
-        </p>
-
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          9. Применимое право
-        </h2>
-        <p className="mt-3">
-          Настоящее Соглашение регулируется законодательством Российской
-          Федерации. Все споры разрешаются в соответствии с законодательством
-          РФ.
-        </p>
-
-        <h2 className="mt-8 font-display text-2xl font-semibold">
-          10. Контакты
-        </h2>
-        <p className="mt-3">
-          По любым вопросам, связанным с настоящим Соглашением:{" "}
-          <a
-            href="mailto:hello@orenburzhie-iznutri.ru"
-            className="text-primary hover:underline"
-          >
-            hello@orenburzhie-iznutri.ru
-          </a>
-          .
-        </p>
-      </div>
-
-      <div className="mt-12 flex justify-center">
-        <Link href="/" className="text-sm text-primary hover:underline">
-          ← На главную
-        </Link>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold">
+              7. Изменения в соглашении
+            </h2>
+            <p className="text-sm leading-relaxed text-foreground/90">
+              Администрация может изменять это Соглашение. Актуальная версия
+              всегда на этой странице. Продолжая использовать Сайт после
+              изменений, ты соглашаешься с новой редакцией.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </article>
   );
