@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { askмы } from "@/lib/gigachat/client";
+import { askGigaChat } from "@/lib/gigachat/client";
 
 export const runtime = "nodejs";
 
@@ -7,7 +7,7 @@ export async function GET() {
   const started = Date.now();
 
   try {
-    const answer = await askмы(
+    const answer = await askGigaChat(
       "Ты коротко и дружелюбно отвечаешь на вопросы об Оренбуржье.",
       "В одном предложении: чем известна Оренбургская область?"
     );
@@ -15,7 +15,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       duration_ms: Date.now() - started,
-      model: process.env.GIGACHAT_MODEL ?? "мы-2",
+      model: process.env.GIGACHAT_MODEL ?? "GigaChat-2",
       answer,
     });
   } catch (err) {
