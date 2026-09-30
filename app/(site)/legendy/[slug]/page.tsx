@@ -2,23 +2,43 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, BookOpen, Eye, MapPin, Calendar } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { sql } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-async function getLegend(slug: string) {
-  const supabase = await createClient();
+type LegendRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  source: string | null;
+  views: number | null;
+  created_at: string;
+  place_slug: string | null;
+  place_title: string | null;
+};
 
-  const { data } = await supabase
-    .from("legends")
-    .select(
-      "id, slug, title, excerpt, body, source, views, created_at, place:places(id, slug, title)"
-    )
-    .eq("slug", slug)
-    .eq("status", "published")
-    .single();
+async function getLegend(slug: string): Promise<LegendRow | null> {
+  const rows = await sql<LegendRow[]>`
+    SELECT
+      l.id,
+      l.slug,
+      l.title,
+      l.excerpt,
+      l.body,
+      l.source,
+      l.views,
+      l.created_at,
+      p.slug  AS place_slug,
+      p.title AS place_title
+    FROM legends l
+    LEFT JOIN places p ON p.id = l.place_id
+    WHERE l.slug = ${slug} AND l.status = 'published'
+    LIMIT 1
+  `;
 
-  return data;
+  return rows[0] ?? null;
 }
 
 export async function generateMetadata({
@@ -31,25 +51,13 @@ export async function generateMetadata({
 
   if (!legend) return { title: "Легенда не найдена" };
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
-
   return {
     title: legend.title,
     description: legend.excerpt ?? legend.title,
-    alternates: { canonical: `/legendy/${legend.slug}` },
     openGraph: {
       title: legend.title,
       description: legend.excerpt ?? "",
       type: "article",
-      url: `${siteUrl}/legendy/${legend.slug}`,
-      images: [`${siteUrl}/og/default.svg`],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: legend.title,
-      description: legend.excerpt ?? "",
-      images: [`${siteUrl}/og/default.svg`],
     },
   };
 }
@@ -64,73 +72,23 @@ export default async function LegendPage({
 
   if (!legend) notFound();
 
-  const supabase = await createClient();
-  supabase
-    .from("legends")
-    .update({ views: (legend.views ?? 0) + 1 })
-    .eq("id", legend.id)
-    .then(() => {});
+  sql`UPDATE legends SET views = COALESCE(views, 0) + 1 WHERE id = ${legend.id}`.catch(() => {});
 
-  const place = legend.place as unknown as
-    | { id: string; slug: string; title: string }
-    | null;
-
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
-
-  const articleJsonLd = {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: legend.title,
     articleBody: legend.body,
     url: `${siteUrl}/legendy/${legend.slug}`,
     datePublished: legend.created_at,
-    inLanguage: "ru-RU",
-    author: { "@type": "Organization", name: "Оренбуржье изнутри" },
-    publisher: {
-      "@type": "Organization",
-      name: "Оренбуржье изнутри",
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}/og/default.svg`,
-      },
-    },
-  };
-
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Главная",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Легенды",
-        item: `${siteUrl}/legendy`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: legend.title,
-        item: `${siteUrl}/legendy/${legend.slug}`,
-      },
-    ],
   };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <Button asChild variant="ghost" size="sm" className="mb-6">
@@ -157,13 +115,13 @@ export default async function LegendPage({
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          {place && (
+          {legend.place_title && legend.place_slug && (
             <Link
-              href={`/mesta/${place.slug}`}
+              href={`/mesta/${legend.place_slug}`}
               className="flex items-center gap-1 hover:text-primary"
             >
               <MapPin className="h-4 w-4" />
-              {place.title}
+              {legend.place_title}
             </Link>
           )}
           <span className="flex items-center gap-1">

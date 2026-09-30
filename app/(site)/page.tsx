@@ -1,308 +1,271 @@
 ﻿import Link from "next/link";
-import { Hero } from "@/components/hero";
-import { ChatWidget } from "@/components/chat-widget";
-import { PlaceCard, type Place } from "@/components/place-card";
-import { SectionHeader } from "@/components/section-header";
+import type { Metadata } from "next";
+import { sql } from "@/lib/db";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Sparkles, BookOpen, Trophy } from "lucide-react";
+import { PlaceCard } from "@/components/place-card";
+import { SearchBar } from "@/components/search-bar";
+import { MapPin, BookOpen, Calendar, Compass, ArrowRight } from "lucide-react";
 
-const TOP_PLACES: Place[] = [
-  {
-    id: "1",
-    slug: "guberlinskie-gory",
-    title: "Губерлинские горы",
-    shortDesc:
-      "Живописные холмы и скалы в 60 км от Орска. Идеально для выходных: пешие прогулки, фотографии, палаточный лагерь.",
-    category: "Природа",
-    tags: ["горы", "поход", "фото"],
-    views: 1243,
-    isFree: true,
-  },
-  {
-    id: "2",
-    slug: "iriklinskoe-vodohranilishche",
-    title: "Ириклинское водохранилище",
-    shortDesc:
-      "Одно из крупнейших водохранилищ Урала. Рыбалка, кайтсёрфинг, песчаные пляжи и закаты, которые невозможно забыть.",
-    category: "Природа",
-    tags: ["озеро", "рыбалка", "пляж"],
-    views: 987,
-    isFree: true,
-  },
-  {
-    id: "3",
-    slug: "orskaia-krepost",
-    title: "Орская крепость",
-    shortDesc:
-      "Историческое место основания города. Сохранились валы, рядом — краеведческий музей и старинные улицы.",
-    category: "История",
-    tags: ["история", "музей", "XVIII век"],
-    views: 654,
-  },
-  {
-    id: "4",
-    slug: "gora-polkovnik",
-    title: "Гора Полковник",
-    shortDesc:
-      "Место силы с панорамным видом на Орск. Легенда гласит: здесь стоял лагерем сам Емельян Пугачёв.",
-    category: "Легенды",
-    tags: ["легенды", "вид", "панорама"],
-    views: 512,
-  },
-];
+export const metadata: Metadata = {
+  title: "Оренбуржье изнутри — народный гид по Оренбургской области",
+  description:
+    "Места, истории, легенды, маршруты и события Оренбургской области. Народный гид по Оренбуржью.",
+};
 
-const LATEST_LEGENDS = [
-  {
-    slug: "legenda-o-urale-batyre",
-    title: "Легенда о Урал-батыре",
-    excerpt:
-      "Почему река Урал разделяет Европу и Азию, и как древний батыр пожертвовал собой ради людей.",
-    readTime: 5,
-  },
-  {
-    slug: "taina-orskoi-kreposti",
-    title: "Тайна Орской крепости",
-    excerpt:
-      "Подземные ходы, клады и призраки — что рассказывают старожилы о первых годах города.",
-    readTime: 7,
-  },
-  {
-    slug: "gde-zhivet-echo",
-    title: "Где живёт эхо",
-    excerpt:
-      "Легенды Губерлинских гор: почему в ущельях слышны голоса, и кто их на самом деле издаёт.",
-    readTime: 4,
-  },
-];
+type PlaceCardRow = {
+  id: string;
+  slug: string;
+  title: string;
+  short_desc: string | null;
+  cover_url: string | null;
+  views: number | null;
+  is_free: boolean | null;
+  category_name: string | null;
+};
 
-const QUIZZES = [
-  {
-    slug: "znayu-li-ya-orsk",
-    title: "Знаю ли я Орск?",
-    questions: 10,
-    difficulty: "Легко",
-  },
-  {
-    slug: "legendy-orenburzhya",
-    title: "Легенды Оренбуржья",
-    questions: 8,
-    difficulty: "Средне",
-  },
-  {
-    slug: "priroda-urala",
-    title: "Природа Урала",
-    questions: 12,
-    difficulty: "Сложно",
-  },
-];
+type LegendRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+};
 
-const EVENTS = [
-  {
-    slug: "den-goroda-orsk",
-    title: "День города Орска",
-    date: "2026-08-15",
-    place: "Центральная площадь",
-  },
-  {
-    slug: "festival-stepnoi-veter",
-    title: "Фестиваль «Степной ветер»",
-    date: "2026-09-05",
-    place: "Губерлинские горы",
-  },
-];
+type EventRow = {
+  id: string;
+  slug: string;
+  title: string;
+  starts_at: string;
+  address: string | null;
+};
 
-export default function HomePage() {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
-
-  const organizationJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Оренбуржье изнутри",
-    url: siteUrl,
-    logo: `${siteUrl}/og/default.svg`,
-    description:
-      "Народный интерактивный гид по Орску и Оренбургской области: места, легенды, маршруты, события, тесты. Умный помощник на базе GigaChat.",
-    foundingDate: "2026",
-    areaServed: {
-      "@type": "Place",
-      name: "Оренбургская область",
-    },
-    sameAs: [],
-  };
-
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Оренбуржье изнутри",
-    url: siteUrl,
-    description:
-      "Места, легенды, маршруты и события Орска и Оренбургской области.",
-    inLanguage: "ru-RU",
-    publisher: {
-      "@type": "Organization",
-      name: "Оренбуржье изнутри",
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}/og/default.svg`,
-      },
-    },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${siteUrl}/mesta?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-  };
+export default async function HomePage() {
+  const [topPlaces, latestLegends, upcomingEvents] = await Promise.all([
+    sql<PlaceCardRow[]>`
+      SELECT
+        p.id, p.slug, p.title, p.short_desc, p.cover_url,
+        p.views, p.is_free,
+        c.name AS category_name
+      FROM places p
+      LEFT JOIN categories c ON c.id = p.category_id
+      WHERE p.status = 'published'
+      ORDER BY p.views DESC NULLS LAST, p.created_at DESC
+      LIMIT 6
+    `,
+    sql<LegendRow[]>`
+      SELECT id, slug, title, excerpt
+      FROM legends
+      WHERE status = 'published'
+      ORDER BY created_at DESC
+      LIMIT 3
+    `,
+    sql<EventRow[]>`
+      SELECT id, slug, title, starts_at, address
+      FROM events
+      WHERE status = 'published' AND starts_at >= NOW()
+      ORDER BY starts_at ASC
+      LIMIT 3
+    `,
+  ]);
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
+    <div>
+      {/* HERO */}
+      <section className="relative overflow-hidden sunrise-gradient dark:sunrise-gradient-dark">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          <div className="max-w-3xl">
+            <Badge variant="secondary" className="mb-4 bg-white/70 text-foreground dark:bg-white/10">
+              <MapPin className="mr-1 h-3 w-3" />
+              Народный гид по Оренбуржью
+            </Badge>
 
-      <Hero />
+            <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              Оренбуржье изнутри
+            </h1>
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <section className="grid gap-10 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <SectionHeader title="Топ-места Орска и области" href="/mesta" />
-            <div className="grid gap-6 sm:grid-cols-2">
-              {TOP_PLACES.map((place, i) => (
-                <PlaceCard key={place.id} place={place} priority={i < 2} />
+            <p className="mt-4 text-lg text-foreground/80 sm:text-xl">
+              Места, легенды, маршруты и события Оренбургской области —
+              собрано местными жителями и путешественниками.
+            </p>
+
+            <div className="mt-8 max-w-xl">
+              <SearchBar />
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link href="/mesta">
+                  Смотреть места
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/add">Добавить место</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ТОП МЕСТ */}
+      {topPlaces.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-3xl font-bold sm:text-4xl">
+                Топ места
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Самое популярное у посетителей
+              </p>
+            </div>
+            <Button asChild variant="ghost">
+              <Link href="/mesta">
+                Все места
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {topPlaces.map((place, i) => (
+              <PlaceCard
+                key={place.id}
+                place={{
+                  id: place.id,
+                  slug: place.slug,
+                  title: place.title,
+                  shortDesc: place.short_desc ?? "",
+                  coverUrl: place.cover_url,
+                  category: place.category_name ?? undefined,
+                  views: place.views ?? 0,
+                  isFree: place.is_free ?? true,
+                }}
+                priority={i < 3}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ЛЕГЕНДЫ */}
+      {latestLegends.length > 0 && (
+        <section className="bg-muted/30 py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between">
+              <div>
+                <h2 className="font-display text-3xl font-bold sm:text-4xl">
+                  Легенды Оренбуржья
+                </h2>
+                <p className="mt-2 text-muted-foreground">
+                  Народные предания и истории старожилов
+                </p>
+              </div>
+              <Button asChild variant="ghost">
+                <Link href="/legendy">
+                  Все легенды
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {latestLegends.map((legend) => (
+                <Link
+                  key={legend.id}
+                  href={`/legendy/${legend.slug}`}
+                  className="group"
+                >
+                  <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <CardContent className="space-y-3 p-6">
+                      <BookOpen className="h-6 w-6 text-primary" />
+                      <h3 className="font-display text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
+                        {legend.title}
+                      </h3>
+                      {legend.excerpt && (
+                        <p className="line-clamp-3 text-sm text-muted-foreground">
+                          {legend.excerpt}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
-
-          <aside className="lg:col-span-1">
-            <div className="sticky top-24 space-y-6">
-              <ChatWidget />
-            </div>
-          </aside>
         </section>
+      )}
 
-        <section className="mt-20">
-          <SectionHeader title="Свежие истории и легенды" href="/legendy" />
-          <div className="grid gap-6 md:grid-cols-3">
-            {LATEST_LEGENDS.map((legend) => (
+      {/* СОБЫТИЯ */}
+      {upcomingEvents.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-3xl font-bold sm:text-4xl">
+                Ближайшие события
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Что происходит в Оренбуржье
+              </p>
+            </div>
+            <Button asChild variant="ghost">
+              <Link href="/sobytiya">
+                Все события
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {upcomingEvents.map((event) => (
               <Link
-                key={legend.slug}
-                href={`/legendy/${legend.slug}`}
+                key={event.id}
+                href={`/sobytiya/${event.slug}`}
                 className="group"
               >
-                <Card className="h-full border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                  <CardContent className="space-y-3 p-5">
+                <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <CardContent className="space-y-3 p-6">
                     <Badge variant="secondary" className="bg-accent">
-                      <BookOpen className="mr-1 h-3 w-3" />
-                      Легенда
+                      <Calendar className="mr-1 h-3 w-3" />
+                      {new Date(event.starts_at).toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "long",
+                      })}
                     </Badge>
                     <h3 className="font-display text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
-                      {legend.title}
+                      {event.title}
                     </h3>
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
-                      {legend.excerpt}
-                    </p>
-                    <div className="flex items-center gap-1 pt-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      {legend.readTime} мин чтения
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-20">
-          <SectionHeader title="Проверь себя" href="/testy" />
-          <div className="grid gap-6 md:grid-cols-3">
-            {QUIZZES.map((quiz) => (
-              <Link key={quiz.slug} href={`/testy/${quiz.slug}`} className="group">
-                <Card className="h-full border-border/60 bg-gradient-to-br from-ochre-50 to-terracotta-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:from-deepblue-700 dark:to-deepblue-700">
-                  <CardContent className="space-y-3 p-5">
-                    <Trophy className="h-8 w-8 text-ochre-600" />
-                    <h3 className="font-display text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
-                      {quiz.title}
-                    </h3>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{quiz.questions} вопросов</span>
-                      <Badge variant="outline">{quiz.difficulty}</Badge>
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-2 w-full">
-                      Пройти тест
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-20">
-          <SectionHeader title="Ближайшие события" href="/sobytiya" />
-          <div className="grid gap-4 md:grid-cols-2">
-            {EVENTS.map((ev) => (
-              <Link key={ev.slug} href={`/sobytiya/${ev.slug}`}>
-                <Card className="border-border/60 transition-all hover:border-primary/40 hover:shadow-md">
-                  <CardContent className="flex items-start gap-4 p-5">
-                    <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <span className="text-lg font-bold leading-none">
-                        {new Date(ev.date).getDate()}
-                      </span>
-                      <span className="text-[10px] uppercase">
-                        {new Date(ev.date).toLocaleDateString("ru-RU", {
-                          month: "short",
-                        })}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-display font-semibold">{ev.title}</h3>
-                      <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {ev.place}
+                    {event.address && (
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {event.address}
                       </p>
-                    </div>
-                    <Calendar className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    )}
                   </CardContent>
                 </Card>
               </Link>
             ))}
           </div>
         </section>
+      )}
 
-        <section className="mt-20">
-          <Card className="overflow-hidden border-0 sunrise-gradient dark:sunrise-gradient-dark">
-            <CardContent className="flex flex-col items-center gap-6 p-10 text-center sm:p-14">
-              <Sparkles className="h-10 w-10 text-primary" />
-              <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                Не знаешь, с чего начать?
-              </h2>
-              <p className="max-w-xl text-foreground/80">
-                Выбери 3–5 мест — GigaChat соберёт маршрут с таймингом, бюджетом и
-                советами. Экспортируй в PDF или GPX для навигатора.
-              </p>
-              <Button asChild size="lg" className="mt-2 [&_svg]:size-5">
-                <Link
-                  href="/sobrat-marshrut"
-                  className="inline-flex items-center gap-2"
-                >
-                  <Sparkles />
-                  <span>Собрать маршрут</span>
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
-    </>
+      {/* CTA */}
+      <section className="border-t border-border/60 py-16">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <Compass className="mx-auto h-12 w-12 text-primary" />
+          <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">
+            Знаешь интересное место?
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Поделись с другими — добавь место на сайт. Мы опубликуем после
+            проверки.
+          </p>
+          <Button asChild size="lg" className="mt-6">
+            <Link href="/add">Добавить место</Link>
+          </Button>
+        </div>
+      </section>
+    </div>
   );
 }

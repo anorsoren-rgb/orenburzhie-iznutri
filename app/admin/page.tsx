@@ -1,115 +1,156 @@
 ﻿import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
+import { auth } from "@/auth";
+import { sql } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ModerateButtons } from "@/components/moderate-buttons";
-import { Shield, MapPin, BookOpen, Calendar } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Eye } from "lucide-react";
 
-export const metadata = { title: "Панель модерации" };
+export const metadata = { title: "Админка — модерация" };
+
+type PlaceRow = {
+  id: string;
+  slug: string;
+  title: string;
+  short_desc: string | null;
+  status: string;
+  created_at: string;
+  author_name: string | null;
+  category_name: string | null;
+};
 
 export default async function AdminPage() {
-  const supabase = await createClient();
+  const session = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (!session?.user) {
     redirect("/login?next=/admin");
   }
 
-  // Проверяем роль
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, username, full_name")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin") {
-    redirect("/");
+  const role = (session.user as { role?: string }).role;
+  if (role !== "admin" && role !== "moderator") {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6 lg:px-8">
+        <XCircle className="mx-auto h-12 w-12 text-destructive" />
+        <h1 className="mt-4 font-display text-2xl font-bold">
+          Доступ запрещён
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Эта страница доступна только модераторам и администраторам.
+        </p>
+        <Button asChild className="mt-6">
+          <Link href="/">На главную</Link>
+        </Button>
+      </div>
+    );
   }
 
-  // Загружаем pending контент
-  const [placesRes, legendsRes, eventsRes] = await Promise.all([
-    supabase
-      .from("places")
-      .select("id, title, short_desc, created_at, status, cover_url")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("legends")
-      .select("id, title, excerpt, created_at, status")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("events")
-      .select("id, title, description, starts_at, status")
-      .eq("status", "draft")
-      .order("created_at", { ascending: false }),
-  ]);
+  const pending = await sql<PlaceRow[]>`
+    SELECT
+      p.id, p.slug, p.title, p.short_desc, p.status, p.created_at,
+      COALESCE(pr.full_name, pr.username, 'Аноним') AS author_name,
+      c.name AS category_name
+    FROM places p
+    LEFT JOIN profiles pr ON pr.id = p.author_id
+    LEFT JOIN categories c ON c.id = p.category_id
+    WHERE p.status = 'pending'
+    ORDER BY p.created_at ASC
+  `;
 
-  const pendingPlaces = placesRes.data ?? [];
-  const pendingLegends = legendsRes.data ?? [];
-  const pendingEvents = eventsRes.data ?? [];
+  const published = await sql<PlaceRow[]>`
+    SELECT
+      p.id, p.slug, p.title, p.short_desc, p.status, p.created_at,
+      COALESCE(pr.full_name, pr.username, 'Аноним') AS author_name,
+      c.name AS category_name
+    FROM places p
+    LEFT JOIN profiles pr ON pr.id = p.author_id
+    LEFT JOIN categories c ON c.id = p.category_id
+    WHERE p.status = 'published'
+    ORDER BY p.created_at DESC
+    LIMIT 30
+  `;
 
-  const totalPending =
-    pendingPlaces.length + pendingLegends.length + pendingEvents.length;
+  const rejected = await sql<PlaceRow[]>`
+    SELECT
+      p.id, p.slug, p.title, p.short_desc, p.status, p.created_at,
+      COALESCE(pr.full_name, pr.username, 'Аноним') AS author_name,
+      c.name AS category_name
+    FROM places p
+    LEFT JOIN profiles pr ON pr.id = p.author_id
+    LEFT JOIN categories c ON c.id = p.category_id
+    WHERE p.status = 'rejected'
+    ORDER BY p.created_at DESC
+    LIMIT 30
+  `;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      {/* Заголовок */}
-      <div className="mb-8 flex items-center gap-3">
-        <Shield className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="font-display text-3xl font-bold">Панель модерации</h1>
-          <p className="text-sm text-muted-foreground">
-            Привет, {profile.full_name || profile.username || "админ"}. На
-            модерации: {totalPending}
-          </p>
-        </div>
-      </div>
+      <header className="mb-8">
+        <h1 className="font-display text-3xl font-bold sm:text-4xl">
+          Панель модерации
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Проверяй места, отправленные пользователями
+        </p>
+      </header>
 
-      {/* Места */}
+      {/* ОЧЕРЕДЬ */}
       <section className="mb-10">
         <div className="mb-4 flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
+          <Clock className="h-5 w-5 text-ochre-600" />
           <h2 className="font-display text-xl font-semibold">
-            Места на модерации ({pendingPlaces.length})
+            На модерации ({pending.length})
           </h2>
         </div>
 
-        {pendingPlaces.length === 0 ? (
+        {pending.length === 0 ? (
           <Card>
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Нет мест на модерации
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Очередь пуста — все места проверены
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {pendingPlaces.map((place) => (
-              <Card key={place.id} className="border-border/60">
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={`/mesta/${place.title}`}
-                        className="font-display text-lg font-semibold hover:text-primary"
-                      >
-                        {place.title}
-                      </Link>
-                      <Badge variant="secondary">pending</Badge>
-                    </div>
+            {pending.map((place) => (
+              <Card key={place.id}>
+                <CardContent className="space-y-3 p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary" className="bg-ochre-100 text-ochre-700">
+                      ⏳ На модерации
+                    </Badge>
+                    {place.category_name && (
+                      <Badge variant="outline">{place.category_name}</Badge>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="font-display text-lg font-semibold">
+                      {place.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Автор: {place.author_name} ·{" "}
+                      {new Date(place.created_at).toLocaleDateString("ru-RU")}
+                    </p>
                     {place.short_desc && (
-                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                      <p className="mt-2 text-sm text-foreground/90">
                         {place.short_desc}
                       </p>
                     )}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {new Date(place.created_at).toLocaleString("ru-RU")}
-                    </p>
                   </div>
-                  <ModerateButtons table="places" id={place.id} />
+
+                  <div className="flex flex-wrap gap-2">
+                    <ModerateButtons placeId={place.id} />
+                    <Button asChild variant="ghost" size="sm">
+                      <Link
+                        href={`/mesta/${place.slug}`}
+                        target="_blank"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Посмотреть
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -117,43 +158,38 @@ export default async function AdminPage() {
         )}
       </section>
 
-      {/* Легенды */}
+      {/* ОПУБЛИКОВАННЫЕ */}
       <section className="mb-10">
         <div className="mb-4 flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
+          <CheckCircle2 className="h-5 w-5 text-steppe-700" />
           <h2 className="font-display text-xl font-semibold">
-            Легенды на модерации ({pendingLegends.length})
+            Опубликованные ({published.length})
           </h2>
         </div>
 
-        {pendingLegends.length === 0 ? (
+        {published.length === 0 ? (
           <Card>
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Нет легенд на модерации
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Пока ничего не опубликовано
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {pendingLegends.map((legend) => (
-              <Card key={legend.id} className="border-border/60">
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
+          <div className="space-y-2">
+            {published.map((place) => (
+              <Card key={place.id}>
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-display text-lg font-semibold">
-                        {legend.title}
-                      </h3>
-                      <Badge variant="secondary">pending</Badge>
-                    </div>
-                    {legend.excerpt && (
-                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                        {legend.excerpt}
-                      </p>
-                    )}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {new Date(legend.created_at).toLocaleString("ru-RU")}
+                    <p className="font-medium">{place.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {place.author_name} ·{" "}
+                      {new Date(place.created_at).toLocaleDateString("ru-RU")}
                     </p>
                   </div>
-                  <ModerateButtons table="legends" id={legend.id} />
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href={`/mesta/${place.slug}`} target="_blank">
+                      <Eye className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -161,49 +197,34 @@ export default async function AdminPage() {
         )}
       </section>
 
-      {/* События */}
-      <section>
-        <div className="mb-4 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="font-display text-xl font-semibold">
-            События-черновики ({pendingEvents.length})
-          </h2>
-        </div>
+      {/* ОТКЛОНЁННЫЕ */}
+      {rejected.length > 0 && (
+        <section>
+          <div className="mb-4 flex items-center gap-2">
+            <XCircle className="h-5 w-5 text-destructive" />
+            <h2 className="font-display text-xl font-semibold">
+              Отклонённые ({rejected.length})
+            </h2>
+          </div>
 
-        {pendingEvents.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Нет событий на модерации
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {pendingEvents.map((event) => (
-              <Card key={event.id} className="border-border/60">
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
+          <div className="space-y-2">
+            {rejected.map((place) => (
+              <Card key={place.id}>
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-display text-lg font-semibold">
-                        {event.title}
-                      </h3>
-                      <Badge variant="secondary">draft</Badge>
-                    </div>
-                    {event.description && (
-                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                        {event.description}
-                      </p>
-                    )}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {new Date(event.starts_at).toLocaleString("ru-RU")}
+                    <p className="font-medium">{place.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {place.author_name} ·{" "}
+                      {new Date(place.created_at).toLocaleDateString("ru-RU")}
                     </p>
                   </div>
-                  <ModerateButtons table="events" id={event.id} />
+                  <ModerateButtons placeId={place.id} />
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

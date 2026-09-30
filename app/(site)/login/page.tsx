@@ -1,26 +1,26 @@
-﻿import Link from "next/link";
+﻿import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/login-form";
 
-export const metadata = { title: "Вход" };
+export const metadata: Metadata = {
+  title: "ход",
+};
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const sp = await searchParams;
+
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="mb-8 text-center">
-        <h1 className="font-display text-3xl font-bold">С возвращением 👋</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Войдите, чтобы добавлять места, маршруты и проходить тесты
-        </p>
-      </div>
-
-      <LoginForm />
-
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        Нет аккаунта?{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
-          Зарегистрироваться
-        </Link>
+    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
+      <h1 className="mb-2 text-center font-display text-3xl font-bold">
+        ход
+      </h1>
+      <p className="mb-8 text-center text-sm text-muted-foreground">
+        ойди, чтобы добавлять места и управлять профилем
       </p>
+      <LoginForm nextUrl={sp.next} />
     </div>
   );
 }

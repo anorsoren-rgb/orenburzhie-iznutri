@@ -1,107 +1,78 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
+import { sql } from "@/lib/db";
 import { askGigaChatJSON } from "@/lib/gigachat/client";
 import { MODERATE_SYSTEM, moderateUserPrompt } from "@/lib/gigachat/prompts";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
-const RequestSchema = z.object({
-  text: z.string().min(1).max(10000),
+const Body = z.object({
+  placeId: z.string().uuid(),
 });
-
-const ResponseSchema = z.object({
-  status: z.enum(["ok", "warn", "reject"]),
-  reason: z.string().default(""),
-  fixed_text: z.string().default(""),
-});
-
-const rateLimit = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 20;
-const WINDOW_MS = 60_000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimit.get(ip);
-
-  if (!entry || entry.resetAt < now) {
-    rateLimit.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT) return false;
-  entry.count++;
-  return true;
-}
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of rateLimit.entries()) {
-    if (entry.resetAt < now) rateLimit.delete(ip);
-  }
-}, 5 * 60_000);
 
 export async function POST(req: NextRequest) {
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
-
-  if (!checkRateLimit(ip)) {
-    return NextResponse.json(
-      { ok: false, error: "Слишком много запросов. Подожди минуту." },
-      { status: 429 }
-    );
-  }
-
-  let body: z.infer<typeof RequestSchema>;
   try {
-    body = RequestSchema.parse(await req.json());
-  } catch {
-    return NextResponse.json(
-      { ok: false, error: "Некорректный запрос" },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const raw = await askGigaChatJSON<unknown>(
-      MODERATE_SYSTEM,
-      moderateUserPrompt(body.text)
-    );
-
-    const parsed = ResponseSchema.safeParse(raw);
-
-    if (!parsed.success) {
-      return NextResponse.json({
-        ok: true,
-        data: {
-          status: "ok",
-          reason: "Не удалось проверить, публикуем как есть",
-          fixed_text: body.text,
-        },
-      });
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { ok: false, error: "Требуется авторизация" },
+        { status: 401 }
+      );
     }
 
-    return NextResponse.json({
-      ok: true,
-      data: {
-        status: parsed.data.status,
-        reason: parsed.data.reason,
-        fixed_text: parsed.data.fixed_text || body.text,
-      },
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[gigachat/moderate]", message);
+    const role = (session.user as { role?: string }).role;
+    if (role !== "admin" && role !== "moderator") {
+      return NextResponse.json(
+        { ok: false, error: "Недостаточно прав" },
+        { status: 403 }
+      );
+    }
 
-    return NextResponse.json({
-      ok: true,
-      data: {
-        status: "ok",
-        reason: "Модерация недоступна, публикуем как есть",
-        fixed_text: body.text,
-      },
-    });
+    const parsed = Body.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { ok: false, error: "Некорректный запрос" },
+        { status: 400 }
+      );
+    }
+
+    const rows = await sql<{ title: string; short_desc: string | null; full_desc: string | null }[]>`
+      SELECT title, short_desc, full_desc
+      FROM places
+      WHERE id = ${parsed.data.placeId}
+      LIMIT 1
+    `;
+
+    const place = rows[0];
+    if (!place) {
+      return NextResponse.json(
+        { ok: false, error: "Место не найдено" },
+        { status: 404 }
+      );
+    }
+
+    const text = [
+      `Название: ${place.title}`,
+      place.short_desc ? `Кратко: ${place.short_desc}` : "",
+      place.full_desc ? `Описание: ${place.full_desc}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    const result = await askGigaChatJSON<{
+      status: "ok" | "warn" | "reject";
+      reason: string;
+      fixed_text?: string;
+    }>(MODERATE_SYSTEM, moderateUserPrompt(text));
+
+    return NextResponse.json({ ok: true, result });
+  } catch (err) {
+    console.error("[gigachat/moderate]", err);
+    return NextResponse.json(
+      { ok: false, error: "Ошибка проверки GigaChat" },
+      { status: 500 }
+    );
   }
 }

@@ -1,16 +1,21 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  Sparkles, Loader2, Clock, Wallet, Car, Footprints, Bike,
-  Route as RouteIcon, AlertTriangle,
-} from "lucide-react";
+import { Sparkles, Loader2, MapPin, Clock, Route as RouteIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Disclaimer } from "@/components/disclaimer";
+
+const RouteMap = dynamic(() => import("@/components/route-map").then((m) => m.RouteMap), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-96 items-center justify-center rounded-lg border border-border/60 bg-muted/30">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  ),
+});
 
 type Place = {
   id: string;
@@ -19,117 +24,182 @@ type Place = {
   short_desc: string | null;
   category_name: string | null;
   category_icon: string | null;
+  lat: number | null;
+  lng: number | null;
 };
 
-type Step = {
-  place_index: number;
-  arrival: string;
-  duration_min: number;
-  activity: string;
-  tips: string;
+type Stop = Place & {
+  order: number;
+  distanceFromPrev: number; // км
+  travelMinutesFromPrev: number;
 };
 
-type RouteData = {
-  title: string;
-  description: string;
-  duration_min: number;
-  budget_rub: number;
-  transport: "car" | "walk" | "bike" | "mixed";
-  steps: Step[];
-  overall_tips: string;
-};
+const AVG_SPEED_KMH = 60; // средняя скорость по трассе
+const STOP_MINUTES = 45; // сколько минут проводят на месте
 
-const TRANSPORT_LABEL: Record<string, string> = {
-  car: "На машине",
-  walk: "Пешком",
-  bike: "На велосипеде",
-  mixed: "Смешанный",
-};
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
-const TRANSPORT_ICON: Record<string, React.ReactNode> = {
-  car: <Car className="h-4 w-4" />,
-  walk: <Footprints className="h-4 w-4" />,
-  bike: <Bike className="h-4 w-4" />,
-  mixed: <RouteIcon className="h-4 w-4" />,
-};
+// Жадный алгоритм: начинаем с первого выбранного, каждый раз едем к ближайшему из оставшихся
+function buildGreedyRoute(places: Place[]): Stop[] {
+  const withCoords = places.filter((p) => p.lat !== null && p.lng !== null);
+  const withoutCoords = places.filter((p) => p.lat === null || p.lng === null);
+
+  if (withCoords.length === 0) return [];
+
+  const result: Stop[] = [];
+  const remaining = [...withCoords];
+  let current = remaining.shift()!;
+
+  result.push({
+    ...current,
+    order: 0,
+    distanceFromPrev: 0,
+    travelMinutesFromPrev: 0,
+  });
+
+  while (remaining.length > 0) {
+    let nearestIdx = 0;
+    let nearestDist = Infinity;
+
+    for (let i = 0; i < remaining.length; i++) {
+      const d = haversine(current.lat!, current.lng!, remaining[i].lat!, remaining[i].lng!);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearestIdx = i;
+      }
+    }
+
+    const next = remaining.splice(nearestIdx, 1)[0];
+    result.push({
+      ...next,
+      order: result.length,
+      distanceFromPrev: nearestDist,
+      travelMinutesFromPrev: Math.round((nearestDist / AVG_SPEED_KMH) * 60),
+    });
+    current = next;
+  }
+
+  // Места без координат добавляем в конец (без расчёта)
+  withoutCoords.forEach((p) => {
+    result.push({
+      ...p,
+      order: result.length,
+      distanceFromPrev: 0,
+      travelMinutesFromPrev: 0,
+    });
+  });
+
+  return result;
+}
 
 export function RouteBuilder({ places }: { places: Place[] }) {
-  const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [route, setRoute] = useState<RouteData | null>(null);
+  const [route, setRoute] = useState<Stop[] | null>(null);
+  const [building, setBuilding] = useState(false);
 
   function toggle(id: string) {
+    setRoute(null);
     setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= 6
+        ? prev
+        : [...prev, id]
     );
   }
 
-  async function build() {
-    if (selected.length < 2 || loading) return;
+  function build() {
+    if (selected.length < 2) return;
+    setBuilding(true);
 
-    setLoading(true);
-    setError(null);
-    setRoute(null);
+    const chosen = places.filter((p) => selected.includes(p.id));
+    // Начинаем с самого западного (меньшая долгота) — так логичнее для «утреннего старта»
+    chosen.sort((a, b) => (a.lng ?? 0) - (b.lng ?? 0));
 
-    try {
-      const res = await fetch("/api/gigachat/route-builder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ place_ids: selected }),
-      });
+    const built = buildGreedyRoute(chosen);
 
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "Не удалось собрать маршрут");
-      }
-
-      setRoute(data.data as RouteData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка");
-    } finally {
-      setLoading(false);
-    }
+    // Искусственная задержка для UX (чтобы был «эффект»)
+    setTimeout(() => {
+      setRoute(built);
+      setBuilding(false);
+    }, 600);
   }
+
+  const totalDistance = useMemo(() => {
+    if (!route) return 0;
+    return route.reduce((sum, s) => sum + s.distanceFromPrev, 0);
+  }, [route]);
+
+  const totalTravelMinutes = useMemo(() => {
+    if (!route) return 0;
+    return route.reduce((sum, s) => sum + s.travelMinutesFromPrev, 0);
+  }, [route]);
+
+  const totalMinutes = totalTravelMinutes + (route?.length ?? 0) * STOP_MINUTES;
 
   return (
     <div className="space-y-6">
+      {/* ВЫБОР МЕСТ */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="mb-4 font-display text-lg font-semibold">
-            1. Выбери 2–5 мест
+          <h2 className="font-display text-lg font-semibold">
+            1. Выбери места
           </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            От 2 до 6 мест. Мы построим маршрут так, чтобы было удобно и логично
+            ехать.
+          </p>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            {places.map((p) => {
-              const isSelected = selected.includes(p.id);
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {places.map((place) => {
+              const isSelected = selected.includes(place.id);
+              const hasCoords = place.lat !== null && place.lng !== null;
+
               return (
                 <button
-                  key={p.id}
+                  key={place.id}
                   type="button"
-                  onClick={() => toggle(p.id)}
-                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
+                  onClick={() => toggle(place.id)}
+                  className={`flex items-start gap-3 rounded-lg border p-4 text-left transition-all ${
                     isSelected
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-accent"
+                      : "border-border hover:border-primary/40 hover:bg-accent/40"
                   }`}
                 >
                   <div
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
                       isSelected
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-muted-foreground/40"
+                        : "border-border"
                     }`}
                   >
-                    {isSelected && "✓"}
+                    {isSelected && <span className="text-xs">✓</span>}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{p.title}</p>
-                    {p.category_name && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {p.category_icon} {p.category_name}
+                    <div className="flex items-center gap-1.5">
+                      {place.category_icon && (
+                        <span className="text-sm">{place.category_icon}</span>
+                      )}
+                      <p className="truncate font-medium">{place.title}</p>
+                    </div>
+                    {place.short_desc && (
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                        {place.short_desc}
+                      </p>
+                    )}
+                    {!hasCoords && (
+                      <p className="mt-1 text-xs text-destructive">
+                        ⚠ Нет координат — не попадёт в карту
                       </p>
                     )}
                   </div>
@@ -138,144 +208,128 @@ export function RouteBuilder({ places }: { places: Place[] }) {
             })}
           </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button
               type="button"
               onClick={build}
-              disabled={selected.length < 2 || loading}
-              className="[&_svg]:size-5"
+              disabled={selected.length < 2 || building}
               size="lg"
+              className="[&_svg]:size-5"
             >
-              {loading ? (
+              {building ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  <span>GigaChat строит маршрут (10–25 сек)...</span>
+                  <span>Строим маршрут...</span>
                 </>
               ) : (
                 <>
                   <Sparkles />
-                  <span>Собрать маршрут ({selected.length})</span>
+                  <span>Собрать маршрут</span>
                 </>
               )}
             </Button>
-            <p className="text-sm text-muted-foreground">
-              Выбрано: {selected.length} из {places.length}
-            </p>
+            <span className="text-sm text-muted-foreground">
+              Выбрано: {selected.length} из 6
+            </span>
           </div>
         </CardContent>
       </Card>
 
-      {error && (
-        <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {route && (
-        <Card>
-          <CardContent className="space-y-5 p-6">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="bg-accent">
-                  <RouteIcon className="mr-1 h-3 w-3" />
-                  Маршрут готов
-                </Badge>
-                <Badge variant="outline" className="border-primary/40 text-primary">
-                  <Sparkles className="mr-1 h-3 w-3" />
-                  Создано GigaChat
-                </Badge>
-              </div>
-              <h2 className="mt-3 font-display text-2xl font-bold">
-                {route.title}
+      {/* РЕЗУЛЬТАТ */}
+      {route && route.length > 0 && (
+        <>
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="font-display text-lg font-semibold">
+                2. Твой маршрут
               </h2>
-              <p className="mt-2 text-muted-foreground">
-                {route.description}
-              </p>
-            </div>
 
-            <div className="flex flex-wrap gap-3 text-sm">
-              <span className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5">
-                <Clock className="h-4 w-4" />
-                {Math.floor(route.duration_min / 60)} ч{" "}
-                {route.duration_min % 60} мин
-              </span>
-              <span className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5">
-                <Wallet className="h-4 w-4" />
-                ~{route.budget_rub.toLocaleString("ru-RU")} ₽
-              </span>
-              <span className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5">
-                {TRANSPORT_ICON[route.transport]}
-                {TRANSPORT_LABEL[route.transport]}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-display font-semibold">Этапы</h3>
-              {route.steps.map((step, i) => {
-                const place = places[step.place_index];
-                return (
-                  <div
-                    key={i}
-                    className="rounded-lg border border-border/60 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                          {i + 1}
-                        </div>
-                        <p className="font-semibold">
-                          {place?.title ?? `Место #${step.place_index + 1}`}
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-sm text-muted-foreground">
-                        {step.arrival} · {step.duration_min} мин
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm">{step.activity}</p>
-                    {step.tips && (
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        💡 {step.tips}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {route.overall_tips && (
-              <div className="rounded-lg bg-accent/40 p-4">
-                <h3 className="font-display font-semibold">Общие советы</h3>
-                <p className="mt-2 whitespace-pre-wrap text-sm">
-                  {route.overall_tips}
-                </p>
+              <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-lg bg-muted/40 p-3">
+                  <RouteIcon className="mx-auto h-5 w-5 text-primary" />
+                  <p className="mt-1 font-display text-xl font-bold">
+                    {totalDistance.toFixed(0)} км
+                  </p>
+                  <p className="text-xs text-muted-foreground">расстояние</p>
+                </div>
+                <div className="rounded-lg bg-muted/40 p-3">
+                  <Clock className="mx-auto h-5 w-5 text-primary" />
+                  <p className="mt-1 font-display text-xl font-bold">
+                    {Math.floor(totalMinutes / 60)} ч {totalMinutes % 60} м
+                  </p>
+                  <p className="text-xs text-muted-foreground">всего времени</p>
+                </div>
+                <div className="rounded-lg bg-muted/40 p-3">
+                  <MapPin className="mx-auto h-5 w-5 text-primary" />
+                  <p className="mt-1 font-display text-xl font-bold">
+                    {route.length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">остановок</p>
+                </div>
               </div>
-            )}
 
-            {/* Дисклеймер для маршрута */}
-            <Disclaimer variant="ai" />
-            <Disclaimer variant="route" />
+              <p className="mt-4 text-xs text-muted-foreground">
+                Расчёт примерный: средняя скорость 60 км/ч + 45 минут на каждое
+                место.
+              </p>
+            </CardContent>
+          </Card>
 
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  selected.forEach((id) => params.append("place", id));
-                  router.push(`/sobrat-marshrut/pdf?${params.toString()}`);
-                }}
-                disabled
-                title="Скоро"
-              >
-                📄 Скачать PDF
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/mesta">Смотреть места</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <RouteMap stops={route} />
+
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="font-display text-lg font-semibold">
+                Порядок посещения
+              </h3>
+
+              <div className="mt-4 space-y-3">
+                {route.map((stop) => (
+                  <div
+                    key={stop.id}
+                    className="flex items-start gap-3 rounded-lg border border-border/60 p-4"
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
+                      {stop.order + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/mesta/${stop.slug}`}
+                        className="font-medium hover:text-primary"
+                      >
+                        {stop.title}
+                      </Link>
+                      {stop.short_desc && (
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {stop.short_desc}
+                        </p>
+                      )}
+                      {stop.order > 0 && stop.distanceFromPrev > 0 && (
+                        <p className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>
+                            🚗 {stop.distanceFromPrev.toFixed(0)} км от
+                            предыдущего
+                          </span>
+                          <span>·</span>
+                          <span>≈ {stop.travelMinutesFromPrev} мин в пути</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex justify-center">
+                <Button asChild variant="outline">
+                  <Link href="/mesta">
+                    Посмотреть все места
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

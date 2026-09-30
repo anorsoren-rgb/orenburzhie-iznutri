@@ -2,34 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Sparkles,
-  Loader2,
-  Save,
-  Wand2,
-  AlertTriangle,
-} from "lucide-react";
+import { Loader2, Save, AlertTriangle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ImageUploader } from "@/components/image-uploader";
-import { createClient } from "@/lib/supabase/client";
 
 type Category = { id: number; slug: string; name: string; icon: string | null };
-
-type ExpandedData = {
-  short_desc: string;
-  full_desc: string;
-  how_to_get: string;
-  tips: string;
-  warnings: string;
-  season: "all" | "winter" | "spring" | "summer" | "autumn";
-  is_free: boolean;
-  tags: string[];
-};
-
 type UploadedImage = { url: string; path: string };
 
 export function AddPlaceForm({
@@ -42,49 +22,22 @@ export function AddPlaceForm({
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [rawInput, setRawInput] = useState("");
+  const [shortDesc, setShortDesc] = useState("");
+  const [fullDesc, setFullDesc] = useState("");
+  const [howToGet, setHowToGet] = useState("");
+  const [tips, setTips] = useState("");
+  const [warnings, setWarnings] = useState("");
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [season, setSeason] = useState<"all" | "winter" | "spring" | "summer" | "autumn">("all");
+  const [isFree, setIsFree] = useState(true);
   const [images, setImages] = useState<UploadedImage[]>([]);
-  const [expanded, setExpanded] = useState<ExpandedData | null>(null);
-
-  const [improving, setImproving] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canImprove = rawInput.trim().length >= 10;
-  const canSave = title.trim().length >= 3 && expanded !== null;
-
-  async function improve() {
-    if (!canImprove || improving) return;
-
-    setImproving(true);
-    setError(null);
-
-    try {
-      const categoryName = categories.find((c) => c.id === categoryId)?.name;
-
-      const res = await fetch("/api/gigachat/expand", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: rawInput.trim(),
-          category: categoryName,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "Не удалось улучшить текст");
-      }
-
-      setExpanded(data.data as ExpandedData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка");
-    } finally {
-      setImproving(false);
-    }
-  }
+  const canSave =
+    title.trim().length >= 3 &&
+    shortDesc.trim().length >= 10 &&
+    fullDesc.trim().length >= 30;
 
   async function save() {
     if (!canSave || saving) return;
@@ -93,8 +46,6 @@ export function AddPlaceForm({
     setError(null);
 
     try {
-      const supabase = createClient();
-
       const slug =
         title
           .toLowerCase()
@@ -105,32 +56,29 @@ export function AddPlaceForm({
         "-" +
         Date.now().toString(36);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Не удалось определить пользователя. Войди заново.");
-      }
-
-      const { error: insertError } = await supabase.from("places").insert({
-        slug,
-        title: title.trim(),
-        short_desc: expanded!.short_desc,
-        full_desc: expanded!.full_desc,
-        how_to_get: expanded!.how_to_get,
-        tips: expanded!.tips,
-        warnings: expanded!.warnings,
-        season: expanded!.season,
-        is_free: expanded!.is_free,
-        category_id: categoryId,
-        author_id: user.id,
-        cover_url: images[0]?.url ?? null,
-        gallery: images.map((img) => img.url),
-        status: "pending",
+      const res = await fetch("/api/places/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          title: title.trim(),
+          short_desc: shortDesc.trim(),
+          full_desc: fullDesc.trim(),
+          how_to_get: howToGet.trim() || null,
+          tips: tips.trim() || null,
+          warnings: warnings.trim() || null,
+          season,
+          is_free: isFree,
+          category_id: categoryId,
+          cover_url: images[0]?.url ?? null,
+          gallery: images.map((img) => img.url),
+        }),
       });
 
-      if (insertError) throw new Error(insertError.message);
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Ошибка сохранения");
+      }
 
       router.push("/profil");
       router.refresh();
@@ -140,18 +88,16 @@ export function AddPlaceForm({
     }
   }
 
-  function updateExpanded<K extends keyof ExpandedData>(
-    key: K,
-    value: ExpandedData[K]
-  ) {
-    setExpanded((prev) => (prev ? { ...prev, [key]: value } : prev));
-  }
-
   return (
     <div className="space-y-6">
       <Card>
         <CardContent className="space-y-4 p-6">
-          <h2 className="font-display text-lg font-semibold">1. Основное</h2>
+          <div className="flex items-center gap-2">
+            <Plus className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold">
+              Информация о месте
+            </h2>
+          </div>
 
           <div>
             <label className="text-sm font-medium" htmlFor="title">
@@ -168,21 +114,34 @@ export function AddPlaceForm({
           </div>
 
           <div>
-            <label className="text-sm font-medium" htmlFor="raw">
-              Кратко опиши место (2–3 строки) *
+            <label className="text-sm font-medium" htmlFor="short">
+              Короткое описание * (1–2 предложения)
             </label>
             <Textarea
-              id="raw"
-              value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
-              placeholder="Красивая гора над Орском. По легенде, там был лагерь Пугачёва. С горы виден весь город, особенно красив закат."
-              className="mt-1 min-h-24"
-              maxLength={1000}
+              id="short"
+              value={shortDesc}
+              onChange={(e) => setShortDesc(e.target.value)}
+              placeholder="Красивая гора над Оренбургом. С неё виден весь город, особенно красив закат."
+              className="mt-1 min-h-20"
+              maxLength={300}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Чем больше деталей, тем точнее GigaChat развернёт карточку.
-              Осталось символов: {1000 - rawInput.length}
+              Осталось символов: {300 - shortDesc.length}
             </p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium" htmlFor="full">
+              Полное описание * (3+ абзаца)
+            </label>
+            <Textarea
+              id="full"
+              value={fullDesc}
+              onChange={(e) => setFullDesc(e.target.value)}
+              placeholder="Расскажи подробно: как выглядит место, что там можно делать, чем оно примечательно..."
+              className="mt-1 min-h-40"
+              maxLength={5000}
+            />
           </div>
 
           <div>
@@ -205,166 +164,110 @@ export function AddPlaceForm({
             </div>
           </div>
 
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="text-sm font-medium">Сезон</label>
+              <select
+                value={season}
+                onChange={(e) => setSeason(e.target.value as typeof season)}
+                className="mt-1 block rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="all">Круглый год</option>
+                <option value="winter">Зима</option>
+                <option value="spring">Весна</option>
+                <option value="summer">Лето</option>
+                <option value="autumn">Осень</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Посещение</label>
+              <select
+                value={isFree ? "free" : "paid"}
+                onChange={(e) => setIsFree(e.target.value === "free")}
+                className="mt-1 block rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="free">Бесплатно</option>
+                <option value="paid">Платно</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium" htmlFor="howto">
+              Как добраться
+            </label>
+            <Textarea
+              id="howto"
+              value={howToGet}
+              onChange={(e) => setHowToGet(e.target.value)}
+              placeholder="На машине: 30 минут от Оренбурга по трассе М-5..."
+              className="mt-1 min-h-20"
+              maxLength={1000}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium" htmlFor="tips">
+              Советы
+            </label>
+            <Textarea
+              id="tips"
+              value={tips}
+              onChange={(e) => setTips(e.target.value)}
+              placeholder="Возьмите с собой воду, удобную обувь..."
+              className="mt-1 min-h-20"
+              maxLength={1000}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium" htmlFor="warn">
+              Важно знать (предупреждения)
+            </label>
+            <Textarea
+              id="warn"
+              value={warnings}
+              onChange={(e) => setWarnings(e.target.value)}
+              placeholder="Крутые склоны, будьте осторожны..."
+              className="mt-1 min-h-16"
+              maxLength={500}
+            />
+          </div>
+
           <div>
             <label className="text-sm font-medium">Фотографии</label>
             <p className="mb-2 text-xs text-muted-foreground">
               Первое фото станет обложкой места
             </p>
-            <ImageUploader
-              userId={userId}
-              maxFiles={5}
-              onChange={setImages}
-            />
+            <ImageUploader userId={userId} maxFiles={5} onChange={setImages} />
           </div>
 
           <Button
             type="button"
-            onClick={improve}
-            disabled={!canImprove || improving}
+            onClick={save}
+            disabled={!canSave || saving}
             className="w-full [&_svg]:size-5"
             size="lg"
           >
-            {improving ? (
+            {saving ? (
               <>
                 <Loader2 className="animate-spin" />
-                <span>GigaChat думает (10–20 сек)...</span>
+                <span>Сохраняем...</span>
               </>
             ) : (
               <>
-                <Sparkles />
-                <span>Улучшить с помощью GigaChat</span>
+                <Save />
+                <span>Опубликовать (на модерацию)</span>
               </>
             )}
           </Button>
+
+          <p className="text-center text-xs text-muted-foreground">
+            После отправки место появится на сайте после проверки модератором.
+          </p>
         </CardContent>
       </Card>
-
-      {expanded && (
-        <Card>
-          <CardContent className="space-y-4 p-6">
-            <div className="flex items-center gap-2">
-              <Wand2 className="h-5 w-5 text-primary" />
-              <h2 className="font-display text-lg font-semibold">
-                2. Проверь и отредактируй
-              </h2>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Короткое описание</label>
-              <Textarea
-                value={expanded.short_desc}
-                onChange={(e) => updateExpanded("short_desc", e.target.value)}
-                className="mt-1 min-h-16"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Полное описание</label>
-              <Textarea
-                value={expanded.full_desc}
-                onChange={(e) => updateExpanded("full_desc", e.target.value)}
-                className="mt-1 min-h-40"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Как добраться</label>
-              <Textarea
-                value={expanded.how_to_get}
-                onChange={(e) => updateExpanded("how_to_get", e.target.value)}
-                className="mt-1 min-h-20"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Советы</label>
-              <Textarea
-                value={expanded.tips}
-                onChange={(e) => updateExpanded("tips", e.target.value)}
-                className="mt-1 min-h-20"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">
-                Предупреждения (если есть)
-              </label>
-              <Textarea
-                value={expanded.warnings}
-                onChange={(e) => updateExpanded("warnings", e.target.value)}
-                className="mt-1 min-h-16"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-4">
-              <div>
-                <label className="text-sm font-medium">Сезон</label>
-                <select
-                  value={expanded.season}
-                  onChange={(e) =>
-                    updateExpanded(
-                      "season",
-                      e.target.value as ExpandedData["season"]
-                    )
-                  }
-                  className="mt-1 block rounded-md border border-border bg-background px-3 py-2 text-sm"
-                >
-                  <option value="all">Круглый год</option>
-                  <option value="winter">Зима</option>
-                  <option value="spring">Весна</option>
-                  <option value="summer">Лето</option>
-                  <option value="autumn">Осень</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Посещение</label>
-                <select
-                  value={expanded.is_free ? "free" : "paid"}
-                  onChange={(e) =>
-                    updateExpanded("is_free", e.target.value === "free")
-                  }
-                  className="mt-1 block rounded-md border border-border bg-background px-3 py-2 text-sm"
-                >
-                  <option value="free">Бесплатно</option>
-                  <option value="paid">Платно</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Теги</label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {expanded.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    #{tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              onClick={save}
-              disabled={!canSave || saving}
-              className="w-full [&_svg]:size-5"
-              size="lg"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  <span>Сохраняем...</span>
-                </>
-              ) : (
-                <>
-                  <Save />
-                  <span>Опубликовать (на модерацию)</span>
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {error && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">

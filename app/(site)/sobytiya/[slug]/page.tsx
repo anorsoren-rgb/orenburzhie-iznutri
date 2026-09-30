@@ -9,22 +9,47 @@ import {
   ExternalLink,
   Clock,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { sql } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-async function getEvent(slug: string) {
-  const supabase = await createClient();
+type EventRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  address: string | null;
+  price_rub: number | null;
+  url: string | null;
+  cover_url: string | null;
+  place_slug: string | null;
+  place_title: string | null;
+};
 
-  const { data } = await supabase
-    .from("events")
-    .select(
-      "id, slug, title, description, starts_at, ends_at, address, price_rub, url, cover_url, status, place:places(id, slug, title, lat, lng)"
-    )
-    .eq("slug", slug)
-    .single();
+async function getEvent(slug: string): Promise<EventRow | null> {
+  const rows = await sql<EventRow[]>`
+    SELECT
+      e.id,
+      e.slug,
+      e.title,
+      e.description,
+      e.starts_at,
+      e.ends_at,
+      e.address,
+      e.price_rub,
+      e.url,
+      e.cover_url,
+      p.slug  AS place_slug,
+      p.title AS place_title
+    FROM events e
+    LEFT JOIN places p ON p.id = e.place_id
+    WHERE e.slug = ${slug}
+    LIMIT 1
+  `;
 
-  return data;
+  return rows[0] ?? null;
 }
 
 export async function generateMetadata({
@@ -37,29 +62,13 @@ export async function generateMetadata({
 
   if (!event) return { title: "Событие не найдено" };
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
-
   return {
     title: event.title,
     description: event.description ?? event.title,
-    alternates: { canonical: `/sobytiya/${event.slug}` },
     openGraph: {
       title: event.title,
       description: event.description ?? "",
       type: "article",
-      url: `${siteUrl}/sobytiya/${event.slug}`,
-      images: event.cover_url
-        ? [event.cover_url]
-        : [`${siteUrl}/og/default.svg`],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: event.title,
-      description: event.description ?? "",
-      images: event.cover_url
-        ? [event.cover_url]
-        : [`${siteUrl}/og/default.svg`],
     },
   };
 }
@@ -90,79 +99,25 @@ export default async function EventPage({
 
   if (!event) notFound();
 
-  const place = event.place as unknown as
-    | { id: string; slug: string; title: string }
-    | null;
-
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://orenburzhie-iznutri.ru";
-
-  const eventJsonLd = {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: event.title,
     description: event.description ?? "",
     startDate: event.starts_at,
     endDate: event.ends_at ?? undefined,
-    eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     url: `${siteUrl}/sobytiya/${event.slug}`,
-    image: event.cover_url ?? undefined,
-    location: {
-      "@type": "Place",
-      name: event.address ?? place?.title ?? "Орск",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Орск",
-        addressRegion: "Оренбургская область",
-        addressCountry: "RU",
-      },
-    },
-    offers: event.price_rub !== null
-      ? {
-          "@type": "Offer",
-          price: event.price_rub,
-          priceCurrency: "RUB",
-          availability: "https://schema.org/InStock",
-          url: event.url ?? `${siteUrl}/sobytiya/${event.slug}`,
-        }
+    location: event.address
+      ? { "@type": "Place", name: event.address }
       : undefined,
-  };
-
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Главная",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "События",
-        item: `${siteUrl}/sobytiya`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: event.title,
-        item: `${siteUrl}/sobytiya/${event.slug}`,
-      },
-    ],
   };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
       <Button asChild variant="ghost" size="sm" className="mb-6">
@@ -200,14 +155,16 @@ export default async function EventPage({
           </div>
         </div>
 
-        {(event.address || place) && (
+        {(event.address || event.place_title) && (
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div>
-              <p className="font-medium">{event.address ?? place?.title}</p>
-              {place && event.address && (
+              <p className="font-medium">
+                {event.address ?? event.place_title}
+              </p>
+              {event.place_slug && event.address && (
                 <Link
-                  href={`/mesta/${place.slug}`}
+                  href={`/mesta/${event.place_slug}`}
                   className="text-sm text-primary hover:underline"
                 >
                   Подробнее о месте →

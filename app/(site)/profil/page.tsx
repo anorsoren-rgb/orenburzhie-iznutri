@@ -1,200 +1,161 @@
-﻿import { redirect } from "next/navigation";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { sql } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Plus, Pencil, Eye, Clock } from "lucide-react";
-import { LogoutButton } from "@/components/auth/logout-button";
+import { MapPin, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 
-export const metadata = { title: "Личный кабинет" };
-
-const STATUS_LABEL: Record<string, { text: string; className: string }> = {
-  draft: {
-    text: "Черновик",
-    className: "bg-muted text-muted-foreground",
-  },
-  pending: {
-    text: "На модерации",
-    className: "bg-ochre-100 text-ochre-700 dark:bg-ochre-600/30 dark:text-ochre-400",
-  },
-  published: {
-    text: "Опубликовано",
-    className: "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400",
-  },
-  rejected: {
-    text: "Отклонено",
-    className: "bg-destructive/10 text-destructive",
-  },
+export const metadata: Metadata = {
+  title: "Мой профиль",
 };
 
-export default async function ProfilPage() {
-  const supabase = await createClient();
+type PlaceRow = {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  created_at: string;
+};
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const STATUS_LABEL: Record<string, { text: string; icon: string; cls: string }> = {
+  draft: { text: "Черновик", icon: "📝", cls: "bg-muted text-foreground" },
+  pending: { text: "На модерации", icon: "⏳", cls: "bg-ochre-100 text-ochre-700" },
+  published: { text: "Опубликовано", icon: "✅", cls: "bg-steppe-100 text-steppe-700" },
+  rejected: { text: "Отклонено", icon: "❌", cls: "bg-destructive/10 text-destructive" },
+};
 
-  if (!user) {
-    redirect("/login");
+export default async function ProfilePage() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login?next=/profil");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, full_name, avatar_url, role, reputation, created_at")
-    .eq("id", user.id)
-    .single();
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) redirect("/login");
 
-  const { data: myPlaces } = await supabase
-    .from("places")
-    .select("id, slug, title, status, views, created_at, cover_url")
-    .eq("author_id", user.id)
-    .order("created_at", { ascending: false });
+  const places = await sql<PlaceRow[]>`
+    SELECT id, slug, title, status, created_at
+    FROM places
+    WHERE author_id = ${userId}
+    ORDER BY created_at DESC
+  `;
 
-  const displayName = profile?.full_name || profile?.username || user.email;
+  const stats = {
+    total: places.length,
+    published: places.filter((p) => p.status === "published").length,
+    pending: places.filter((p) => p.status === "pending").length,
+    rejected: places.filter((p) => p.status === "rejected").length,
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      {/* Профиль */}
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
-            {(displayName ?? "?").charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h1 className="font-display text-2xl font-bold">{displayName}</h1>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Роль: {profile?.role ?? "user"} · Репутация:{" "}
-              {profile?.reputation ?? 0}
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold sm:text-4xl">
+            Мой профиль
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {session.user.name ?? session.user.email}
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/add">
+            <Plus className="h-4 w-4" />
+            Добавить место
+          </Link>
+        </Button>
+      </header>
+
+      <div className="grid gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="font-display text-2xl font-bold">{stats.total}</p>
+            <p className="text-xs text-muted-foreground">всего</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="font-display text-2xl font-bold text-steppe-700">
+              {stats.published}
             </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild className="[&_svg]:size-4">
-            <Link href="/add">
-              <Plus />
-              <span>Добавить место</span>
-            </Link>
-          </Button>
-          <LogoutButton />
-        </div>
+            <p className="text-xs text-muted-foreground">опубликовано</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="font-display text-2xl font-bold text-ochre-600">
+              {stats.pending}
+            </p>
+            <p className="text-xs text-muted-foreground">на модерации</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="font-display text-2xl font-bold text-destructive">
+              {stats.rejected}
+            </p>
+            <p className="text-xs text-muted-foreground">отклонено</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Мои места */}
-      <div className="mt-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold">
-            Мои места
-            {myPlaces && myPlaces.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({myPlaces.length})
-              </span>
-            )}
-          </h2>
-        </div>
+      <section className="mt-8">
+        <h2 className="mb-4 font-display text-xl font-semibold">
+          Мои места
+        </h2>
 
-        {!myPlaces || myPlaces.length === 0 ? (
+        {places.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-              <MapPin className="h-10 w-10 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">
-                Ты ещё не добавил ни одного места. Самое время начать!
+            <CardContent className="flex flex-col items-center gap-3 p-12 text-center">
+              <MapPin className="h-12 w-12 text-muted-foreground/40" />
+              <p className="font-display text-lg font-semibold">
+                Пока ничего не добавлено
+              </p>
+              <p className="max-w-md text-sm text-muted-foreground">
+                Добавь первое место — оно появится здесь и уйдёт на проверку.
               </p>
               <Button asChild className="mt-2">
-                <Link href="/add">Добавить первое место</Link>
+                <Link href="/add">
+                  <Plus className="h-4 w-4" />
+                  Добавить место
+                </Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {myPlaces.map((place) => {
-              const status = STATUS_LABEL[place.status] ?? {
-                text: place.status,
-                className: "bg-muted",
-              };
-
+            {places.map((place) => {
+              const status = STATUS_LABEL[place.status] ?? STATUS_LABEL.draft;
               return (
-                <Card key={place.id} className="border-border/60">
-                  <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
-                    {/* Обложка */}
-                    <Link
-                      href={`/mesta/${place.slug}`}
-                      className="block h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted"
-                    >
-                      {place.cover_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={place.cover_url}
-                          alt={place.title}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center sunrise-gradient">
-                          <MapPin className="h-6 w-6 text-primary/40" />
-                        </div>
-                      )}
-                    </Link>
-
-                    {/* Инфо */}
+                <Card key={place.id}>
+                  <CardContent className="flex items-center justify-between gap-4 p-4">
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Link
-                          href={`/mesta/${place.slug}`}
-                          className="font-display text-lg font-semibold hover:text-primary"
-                        >
-                          {place.title}
-                        </Link>
-                        <Badge className={status.className}>
-                          {status.text}
+                      <div className="flex items-center gap-2">
+                        <Badge className={status.cls} variant="secondary">
+                          {status.icon} {status.text}
                         </Badge>
                       </div>
-
-                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3.5 w-3.5" />
-                          {place.views ?? 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {new Date(place.created_at).toLocaleDateString(
-                            "ru-RU"
-                          )}
-                        </span>
-                      </div>
+                      <p className="mt-2 font-medium">{place.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {new Date(place.created_at).toLocaleDateString("ru-RU")}
+                      </p>
                     </div>
 
-                    {/* Кнопки */}
-                    <div className="flex shrink-0 gap-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="[&_svg]:size-4"
-                      >
-                        <Link href={`/mesta/${place.slug}`}>
-                          <Eye />
-                          <span className="hidden sm:inline">Смотреть</span>
-                        </Link>
+                    {place.status === "published" && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/mesta/${place.slug}`}>Открыть</Link>
                       </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        className="[&_svg]:size-4"
-                      >
-                        <Link href={`/mesta/${place.slug}/edit`}>
-                          <Pencil />
-                          <span className="hidden sm:inline">Изменить</span>
-                        </Link>
-                      </Button>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

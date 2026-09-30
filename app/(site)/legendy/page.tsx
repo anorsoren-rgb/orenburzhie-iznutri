@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { sql } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock, Eye, MapPin } from "lucide-react";
@@ -8,21 +8,40 @@ import { BookOpen, Clock, Eye, MapPin } from "lucide-react";
 export const metadata: Metadata = {
   title: "Легенды Оренбуржья",
   description:
-    "Народные легенды, мифы и предания Орска и Оренбургской области: Урал-батыр, Пугачёв, Гора Полковник и другие.",
+    "Народные легенды, мифы и предания Оренбургской области: Урал-батыр, Пугачёв, Гора Полковник и другие.",
+};
+
+type LegendRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  views: number | null;
+  created_at: string;
+  place_slug: string | null;
+  place_title: string | null;
 };
 
 export default async function LegendsPage() {
-  const supabase = await createClient();
+  const legends = await sql<LegendRow[]>`
+    SELECT
+      l.id,
+      l.slug,
+      l.title,
+      l.excerpt,
+      l.body,
+      l.views,
+      l.created_at,
+      p.slug  AS place_slug,
+      p.title AS place_title
+    FROM legends l
+    LEFT JOIN places p ON p.id = l.place_id
+    WHERE l.status = 'published'
+    ORDER BY l.created_at DESC
+  `;
 
-  const { data: legends } = await supabase
-    .from("legends")
-    .select(
-      "id, slug, title, excerpt, body, views, created_at, place:places(id, slug, title)"
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
-
-  const list = legends ?? [];
+  const list = legends;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -49,18 +68,14 @@ export default async function LegendsPage() {
               Легенды скоро появятся
             </p>
             <p className="max-w-md text-sm text-muted-foreground">
-              Мы собираем истории старожилов и народные предания Орска. Скоро
-              здесь будут первые легенды.
+              Мы собираем истории старожилов и народные предания Оренбуржья.
+              Скоро здесь будут первые легенды.
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {list.map((legend) => {
-            const place = legend.place as unknown as
-              | { id: string; slug: string; title: string }
-              | null;
-
             const readMin = Math.max(
               1,
               Math.round(((legend.body ?? "").split(/\s+/).length || 0) / 180)
@@ -89,10 +104,10 @@ export default async function LegendsPage() {
                       </p>
                     )}
 
-                    {place && (
+                    {legend.place_title && (
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        {place.title}
+                        {legend.place_title}
                       </p>
                     )}
 

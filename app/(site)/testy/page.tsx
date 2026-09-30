@@ -1,29 +1,48 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { sql } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles, MapPin, Play } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Тесты о Орске и Оренбуржье",
+  title: "Тесты об Оренбуржье",
   description:
-    "Проверь, насколько хорошо ты знаешь Орск и Оренбургскую область. Викторины, созданные с помощью GigaChat.",
+    "Проверь, насколько хорошо ты знаешь Оренбургскую область. Викторины о местах, легендах и истории региона.",
+};
+
+type QuizRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  questions: unknown;
+  created_by_gigachat: boolean | null;
+  created_at: string;
+  place_slug: string | null;
+  place_title: string | null;
 };
 
 export default async function QuizzesPage() {
-  const supabase = await createClient();
+  const quizzes = await sql<QuizRow[]>`
+    SELECT
+      q.id,
+      q.slug,
+      q.title,
+      q.description,
+      q.questions,
+      q.created_by_gigachat,
+      q.created_at,
+      p.slug  AS place_slug,
+      p.title AS place_title
+    FROM quizzes q
+    LEFT JOIN places p ON p.id = q.place_id
+    WHERE q.status = 'published'
+    ORDER BY q.created_at DESC
+  `;
 
-  const { data: quizzes } = await supabase
-    .from("quizzes")
-    .select(
-      "id, slug, title, description, questions, created_by_gigachat, created_at, place:places(id, slug, title)"
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
-
-  const list = quizzes ?? [];
+  const list = quizzes;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
@@ -32,8 +51,7 @@ export default async function QuizzesPage() {
           Проверь себя
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Викторины о Орске и Оренбургской области. Проверь свои знания и
-          узнай новое.
+          Викторины об Оренбургской области. Проверь свои знания и узнай новое.
         </p>
       </header>
 
@@ -45,8 +63,7 @@ export default async function QuizzesPage() {
               Тестов пока нет
             </p>
             <p className="max-w-md text-sm text-muted-foreground">
-              Зайди на страницу любого места — там можно сгенерировать тест по
-              нему через GigaChat.
+              Скоро здесь появятся викторины о местах и легендах Оренбуржья.
             </p>
             <Button asChild className="mt-2">
               <Link href="/mesta">Смотреть места</Link>
@@ -56,9 +73,6 @@ export default async function QuizzesPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((quiz) => {
-            const place = quiz.place as unknown as
-              | { id: string; slug: string; title: string }
-              | null;
             const questions = Array.isArray(quiz.questions)
               ? quiz.questions
               : [];
@@ -94,10 +108,10 @@ export default async function QuizzesPage() {
                       </p>
                     )}
 
-                    {place && (
+                    {quiz.place_title && (
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        {place.title}
+                        {quiz.place_title}
                       </p>
                     )}
 

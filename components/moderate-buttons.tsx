@@ -2,49 +2,78 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type Props = {
-  table: "places" | "legends" | "events";
-  id: string;
-};
-
-export function ModerateButtons({ table, id }: Props) {
+export function ModerateButtons({ placeId }: { placeId: string }) {
   const router = useRouter();
-  const [loading, setLoading] = useState<"publish" | "reject" | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<"publish" | "reject" | "check" | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
-  async function moderate(action: "publish" | "reject") {
-    setLoading(action);
-    setError(null);
+  async function action(type: "publish" | "reject") {
+    setLoading(type);
+    setMessage(null);
 
     try {
       const res = await fetch("/api/admin/moderate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ table, id, action }),
+        body: JSON.stringify({ placeId, action: type }),
       });
 
       const data = await res.json();
-
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Ошибка");
       }
 
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка");
+      setMessage(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function checkWithAI() {
+    setLoading("check");
+    setMessage(null);
+
+    try {
+      const res = await fetch("/api/gigachat/moderate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placeId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Ошибка");
+      }
+
+      const status = data.result?.status;
+      const reason = data.result?.reason;
+
+      if (status === "ok") {
+        setMessage("✅ GigaChat: всё чисто, можно публиковать");
+      } else if (status === "warn") {
+        setMessage(`⚠️ GigaChat: ${reason ?? "есть замечания"}`);
+      } else if (status === "reject") {
+        setMessage(`❌ GigaChat: ${reason ?? "рекомендуется отклонить"}`);
+      } else {
+        setMessage("GigaChat ответил нестандартно");
+      }
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Ошибка проверки");
     } finally {
       setLoading(null);
     }
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Button
         size="sm"
-        onClick={() => moderate("publish")}
+        onClick={() => action("publish")}
         disabled={loading !== null}
         className="[&_svg]:size-4"
       >
@@ -55,12 +84,13 @@ export function ModerateButtons({ table, id }: Props) {
         )}
         <span>Опубликовать</span>
       </Button>
+
       <Button
         size="sm"
         variant="outline"
-        onClick={() => moderate("reject")}
+        onClick={() => action("reject")}
         disabled={loading !== null}
-        className="text-destructive hover:bg-destructive hover:text-white [&_svg]:size-4"
+        className="[&_svg]:size-4"
       >
         {loading === "reject" ? (
           <Loader2 className="animate-spin" />
@@ -69,8 +99,26 @@ export function ModerateButtons({ table, id }: Props) {
         )}
         <span>Отклонить</span>
       </Button>
-      {error && (
-        <span className="self-center text-xs text-destructive">{error}</span>
+
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={checkWithAI}
+        disabled={loading !== null}
+        className="[&_svg]:size-4"
+      >
+        {loading === "check" ? (
+          <Loader2 className="animate-spin" />
+        ) : (
+          <Sparkles />
+        )}
+        <span>Проверить GigaChat</span>
+      </Button>
+
+      {message && (
+        <span className="w-full text-xs text-muted-foreground">
+          {message}
+        </span>
       )}
     </div>
   );

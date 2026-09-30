@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Eye, Heart } from "lucide-react";
+import { MapPin, Eye, Heart, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ export type Place = {
   tags?: string[];
   views?: number;
   isFree?: boolean;
+  createdByGigachat?: boolean;
 };
 
 type Props = {
@@ -43,7 +44,7 @@ export function PlaceCard({ place, className, priority = false }: Props) {
             </div>
           )}
 
-          <div className="absolute left-3 top-3 flex gap-2">
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
             {place.category && (
               <Badge variant="secondary" className="bg-background/90 backdrop-blur">
                 {place.category}
@@ -52,6 +53,15 @@ export function PlaceCard({ place, className, priority = false }: Props) {
             {place.isFree && (
               <Badge className="bg-ochre-500 text-white hover:bg-ochre-500">
                 Бесплатно
+              </Badge>
+            )}
+            {place.createdByGigachat && (
+              <Badge
+                variant="outline"
+                className="border-primary/40 bg-background/90 text-primary backdrop-blur"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Создано GigaChat
               </Badge>
             )}
           </div>
@@ -88,6 +98,7 @@ export function PlaceCard({ place, className, priority = false }: Props) {
             )}
             <span className="flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
+              <span className="sr-only">В избранное</span>
             </span>
           </div>
         </CardContent>

@@ -5,6 +5,8 @@ const LINKS = {
     { href: "/o-proekte", label: "О проекте" },
     { href: "/faq", label: "Вопросы и ответы" },
     { href: "/politika", label: "Политика конфиденциальности" },
+    { href: "/soglashenie", label: "Пользовательское соглашение" },
+    { href: "/istochniki", label: "Источники и лицензии" },
   ],
   Разделы: [
     { href: "/mesta", label: "Места" },
@@ -29,6 +31,11 @@ export function Footer() {
             <h3 className="font-display text-lg font-bold">Оренбуржье изнутри</h3>
             <p className="mt-3 text-sm text-muted-foreground">
               Народный гид по Орску и Оренбургской области. Места, легенды, маршруты.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              ИП Михайлова А. А.<br />
+              ОГРНИП 326565800014721<br />
+              ИНН 564402086906
             </p>
           </div>
 

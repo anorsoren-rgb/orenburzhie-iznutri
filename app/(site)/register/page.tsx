@@ -1,26 +1,26 @@
-﻿import Link from "next/link";
+﻿import type { Metadata } from "next";
 import { RegisterForm } from "@/components/auth/register-form";
 
-export const metadata = { title: "Регистрация" };
+export const metadata: Metadata = {
+  title: "егистрация",
+};
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const sp = await searchParams;
+
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="mb-8 text-center">
-        <h1 className="font-display text-3xl font-bold">Присоединяйтесь 🌅</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Станьте частью народного гида по Оренбуржью
-        </p>
-      </div>
-
-      <RegisterForm />
-
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        Уже есть аккаунт?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Войти
-        </Link>
+    <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
+      <h1 className="mb-2 text-center font-display text-3xl font-bold">
+        егистрация
+      </h1>
+      <p className="mb-8 text-center text-sm text-muted-foreground">
+        Создай аккаунт, чтобы добавлять места и участвовать в проекте
       </p>
+      <RegisterForm nextUrl={sp.next} />
     </div>
   );
 }

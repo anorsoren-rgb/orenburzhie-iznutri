@@ -1,69 +1,56 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { sql } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-const BodySchema = z.object({
-  table: z.enum(["places", "legends", "events"]),
-  id: z.string().uuid(),
+const Body = z.object({
+  placeId: z.string().uuid(),
   action: z.enum(["publish", "reject"]),
 });
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-
-  // 1. Проверяем, что пользователь — админ
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json(
-      { ok: false, error: "Не авторизован" },
-      { status: 401 }
-    );
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin") {
-    return NextResponse.json(
-      { ok: false, error: "Доступ запрещён. Только для админов." },
-      { status: 403 }
-    );
-  }
-
-  // 2. Валидация входных данных
-  let body: z.infer<typeof BodySchema>;
   try {
-    body = BodySchema.parse(await req.json());
-  } catch {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { ok: false, error: "Требуется авторизация" },
+        { status: 401 }
+      );
+    }
+
+    const role = (session.user as { role?: string }).role;
+    if (role !== "admin" && role !== "moderator") {
+      return NextResponse.json(
+        { ok: false, error: "Недостаточно прав" },
+        { status: 403 }
+      );
+    }
+
+    const parsed = Body.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { ok: false, error: "Некорректный запрос" },
+        { status: 400 }
+      );
+    }
+
+    const { placeId, action } = parsed.data;
+    const newStatus = action === "publish" ? "published" : "rejected";
+
+    await sql`
+      UPDATE places
+      SET status = ${newStatus}, updated_at = NOW()
+      WHERE id = ${placeId}
+    `;
+
+    return NextResponse.json({ ok: true, status: newStatus });
+  } catch (err) {
+    console.error("[admin/moderate]", err);
     return NextResponse.json(
-      { ok: false, error: "Некорректный запрос" },
-      { status: 400 }
-    );
-  }
-
-  // 3. Меняем статус
-  const newStatus = body.action === "publish" ? "published" : "rejected";
-
-  const { error } = await supabase
-    .from(body.table)
-    .update({ status: newStatus })
-    .eq("id", body.id);
-
-  if (error) {
-    console.error("[admin/moderate]", error);
-    return NextResponse.json(
-      { ok: false, error: error.message },
+      { ok: false, error: "Ошибка модерации" },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({ ok: true, newStatus });
 }

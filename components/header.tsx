@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
   Search,
@@ -25,7 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createClient } from "@/lib/supabase/client";
 
 const NAV = [
   { href: "/mesta", label: "Места" },
@@ -35,63 +35,15 @@ const NAV = [
   { href: "/testy", label: "Тесты" },
 ];
 
-type AuthUser = {
-  id: string;
-  email: string | null;
-  name: string;
-};
-
 export function Header() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const [dark, setDark] = useState<boolean>(() => {
     if (typeof document === "undefined") return false;
     return document.documentElement.classList.contains("dark");
   });
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        const name =
-          data.user.user_metadata?.full_name ||
-          data.user.user_metadata?.username ||
-          data.user.email?.split("@")[0] ||
-          "Пользователь";
-        setUser({
-          id: data.user.id,
-          email: data.user.email ?? null,
-          name,
-        });
-      }
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const name =
-          session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.username ||
-          session.user.email?.split("@")[0] ||
-          "Пользователь";
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? null,
-          name,
-        });
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   function toggleTheme() {
     const next = !dark;
@@ -100,12 +52,13 @@ export function Header() {
   }
 
   async function logout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setUser(null);
+    await signOut({ redirect: false });
     router.push("/");
     router.refresh();
   }
+
+  const user = session?.user;
+  const loading = status === "loading";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
@@ -168,7 +121,7 @@ export function Header() {
                           className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
                           aria-label="Меню профиля"
                         >
-                          {user.name.charAt(0).toUpperCase()}
+                          {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
                         </button>
                       }
                     />
@@ -176,7 +129,9 @@ export function Header() {
                       <DropdownMenuGroup>
                         <DropdownMenuLabel>
                           <div className="flex flex-col">
-                            <span className="font-medium">{user.name}</span>
+                            <span className="font-medium">
+                              {user.name ?? "Пользователь"}
+                            </span>
                             <span className="text-xs text-muted-foreground">
                               {user.email}
                             </span>
