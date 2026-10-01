@@ -4,14 +4,12 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   ПАЛИТРА «СТЕПЬ + РАССВЕТ НАД ОРСКОМ»
+   ПАЛИТРА «СТЕПЬ + РАССВЕТ»
    ============================================ */
 @theme inline {
-  /* Шрифты */
   --font-sans: var(--font-inter);
   --font-display: var(--font-manrope);
 
-  /* Основные цвета палитры */
   --color-terracotta-50:  #fdf4f0;
   --color-terracotta-100: #fbe6de;
   --color-terracotta-500: #c75b3a;
@@ -37,7 +35,6 @@
   --color-deepblue-700: #142a45;
   --color-deepblue-900: #0a1a2e;
 
-  /* Семантические переменные shadcn */
   --radius: 0.75rem;
 
   --color-background: var(--background);
@@ -60,9 +57,6 @@
   --color-ring: var(--ring);
 }
 
-/* ============================================
-   СВЕТЛАЯ ТЕМА (по умолчанию)
-   ============================================ */
 :root {
   --background: var(--color-sand-50);
   --foreground: var(--color-deepblue-900);
@@ -73,18 +67,15 @@
   --popover: #ffffff;
   --popover-foreground: var(--color-deepblue-900);
 
-  /* Основной акцент — терракота */
   --primary: var(--color-terracotta-500);
   --primary-foreground: #ffffff;
 
-  /* Вторичный — песочный */
   --secondary: var(--color-sand-100);
   --secondary-foreground: var(--color-deepblue-900);
 
   --muted: var(--color-sand-100);
   --muted-foreground: var(--color-steppe-700);
 
-  /* Акцент — охра */
   --accent: var(--color-ochre-100);
   --accent-foreground: var(--color-terracotta-700);
 
@@ -95,9 +86,6 @@
   --ring: var(--color-terracotta-500);
 }
 
-/* ============================================
-   ТЁМНАЯ ТЕМА
-   ============================================ */
 .dark {
   --background: var(--color-deepblue-900);
   --foreground: var(--color-sand-50);
@@ -127,21 +115,41 @@
   --ring: var(--color-ochre-500);
 }
 
-/* Базовые стили */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     @apply tracking-tight;
   }
+
+  img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  * {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  /* Убираем «синюю рамку» на мобильных при тапах */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
-/* Утилита — градиент «рассвет над степью» для герой-блока */
 @utility sunrise-gradient {
   background: linear-gradient(
     135deg,

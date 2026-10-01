@@ -8,8 +8,6 @@ import { PlaceCard } from "@/components/place-card";
 import { SearchBar } from "@/components/search-bar";
 import { MapPin, BookOpen, Calendar, Compass, ArrowRight } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Оренбуржье изнутри — народный гид по Оренбургской области",
   description:
@@ -73,120 +71,119 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* HERO */}
       <section className="relative overflow-hidden sunrise-gradient dark:sunrise-gradient-dark">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-background/60 px-4 py-1.5 text-sm backdrop-blur">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>Народный гид по Оренбуржью</span>
-            </div>
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <div className="max-w-3xl">
+            <Badge
+              variant="secondary"
+              className="mb-4 bg-white/70 text-xs text-foreground dark:bg-white/10 sm:text-sm"
+            >
+              <MapPin className="mr-1 h-3 w-3" />
+              Народный гид по Оренбуржью
+            </Badge>
 
-            <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Оренбуржье{" "}
-              <span className="bg-gradient-to-r from-terracotta-600 via-ochre-600 to-steppe-700 bg-clip-text text-transparent">
-                изнутри
-              </span>
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              Оренбуржье изнутри
             </h1>
 
-            <p className="mt-6 text-lg text-foreground/80 sm:text-xl">
-              Места, легенды, маршруты и события Оренбургской области — от
-              местных жителей.
+            <p className="mt-3 text-base text-foreground/80 sm:mt-4 sm:text-xl">
+              Места, легенды, маршруты и события Оренбургской области —
+              собрано местными жителями и путешественниками.
             </p>
 
-            <div className="mx-auto mt-8 max-w-xl">
+            <div className="mt-6 max-w-xl sm:mt-8">
               <SearchBar />
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="bg-background/70 backdrop-blur"
-              >
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="[&_svg]:size-4">
                 <Link href="/mesta">
-                  <MapPin className="h-5 w-5" />
-                  Все места
+                  Смотреть места
+                  <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg">
-                <Link href="/sobrat-marshrut">
-                  <Compass className="h-5 w-5" />
-                  Собрать маршрут
-                </Link>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/add">Добавить место</Link>
               </Button>
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" />
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        {topPlaces.length > 0 && (
-          <section>
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-                Топ-места Оренбургской области
+      {/* ТОП МЕСТ */}
+      {topPlaces.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+            <div>
+              <h2 className="font-display text-2xl font-bold sm:text-3xl lg:text-4xl">
+                Топ места
               </h2>
-              <Link
-                href="/mesta"
-                className="group flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
-              >
-                Смотреть все
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <p className="mt-1 text-sm text-muted-foreground sm:mt-2 sm:text-base">
+                Самое популярное у посетителей
+              </p>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/mesta">
+                Все места
+                <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+            {topPlaces.map((place, i) => (
+              <PlaceCard
+                key={place.id}
+                place={{
+                  id: place.id,
+                  slug: place.slug,
+                  title: place.title,
+                  shortDesc: place.short_desc ?? "",
+                  coverUrl: place.cover_url,
+                  category: place.category_name ?? undefined,
+                  views: place.views ?? 0,
+                  isFree: place.is_free ?? true,
+                }}
+                priority={i < 3}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ЛЕГЕНДЫ */}
+      {latestLegends.length > 0 && (
+        <section className="bg-muted/30 py-12 sm:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+              <div>
+                <h2 className="font-display text-2xl font-bold sm:text-3xl lg:text-4xl">
+                  Легенды Оренбуржья
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground sm:mt-2 sm:text-base">
+                  Народные предания и истории старожилов
+                </p>
+              </div>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/legendy">
+                  Все легенды
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {topPlaces.map((place, i) => (
-                <PlaceCard
-                  key={place.id}
-                  place={{
-                    id: place.id,
-                    slug: place.slug,
-                    title: place.title,
-                    shortDesc: place.short_desc ?? "",
-                    coverUrl: place.cover_url,
-                    category: place.category_name ?? undefined,
-                    views: place.views ?? 0,
-                    isFree: place.is_free ?? true,
-                  }}
-                  priority={i < 3}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {latestLegends.length > 0 && (
-          <section className="mt-20">
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-                Свежие истории и легенды
-              </h2>
-              <Link
-                href="/legendy"
-                className="group flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
-              >
-                Смотреть все
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               {latestLegends.map((legend) => (
                 <Link
                   key={legend.id}
                   href={`/legendy/${legend.slug}`}
                   className="group"
                 >
-                  <Card className="h-full border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                    <CardContent className="space-y-3 p-5">
-                      <Badge variant="secondary" className="bg-accent">
-                        <BookOpen className="mr-1 h-3 w-3" />
-                        Легенда
-                      </Badge>
-                      <h3 className="font-display text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
+                  <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <CardContent className="space-y-3 p-5 sm:p-6">
+                      <BookOpen className="h-6 w-6 text-primary" />
+                      <h3 className="font-display text-base font-semibold leading-tight transition-colors group-hover:text-primary sm:text-lg">
                         {legend.title}
                       </h3>
                       {legend.excerpt && (
@@ -199,80 +196,79 @@ export default async function HomePage() {
                 </Link>
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {upcomingEvents.length > 0 && (
-          <section className="mt-20">
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+      {/* СОБЫТИЯ */}
+      {upcomingEvents.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+            <div>
+              <h2 className="font-display text-2xl font-bold sm:text-3xl lg:text-4xl">
                 Ближайшие события
               </h2>
-              <Link
-                href="/sobytiya"
-                className="group flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
-              >
-                Смотреть все
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {upcomingEvents.map((event) => (
-                <Link key={event.id} href={`/sobytiya/${event.slug}`}>
-                  <Card className="border-border/60 transition-all hover:border-primary/40 hover:shadow-md">
-                    <CardContent className="flex items-start gap-4 p-5">
-                      <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <span className="text-lg font-bold leading-none">
-                          {new Date(event.starts_at).getDate()}
-                        </span>
-                        <span className="text-[10px] uppercase">
-                          {new Date(event.starts_at).toLocaleDateString(
-                            "ru-RU",
-                            { month: "short" }
-                          )}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-display font-semibold">
-                          {event.title}
-                        </h3>
-                        {event.address && (
-                          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {event.address}
-                          </p>
-                        )}
-                      </div>
-                      <Calendar className="h-5 w-5 shrink-0 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="mt-20">
-          <Card className="border-0 sunrise-gradient dark:sunrise-gradient-dark">
-            <CardContent className="flex flex-col items-center gap-6 p-10 text-center sm:p-14">
-              <Compass className="h-10 w-10 text-primary" />
-              <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                Не знаешь, с чего начать?
-              </h2>
-              <p className="max-w-xl text-foreground/80">
-                Выбери 3–5 мест — мы соберём маршрут с таймингом и советами.
+              <p className="mt-1 text-sm text-muted-foreground sm:mt-2 sm:text-base">
+                Что происходит в Оренбуржье
               </p>
-              <Button asChild size="lg" className="mt-2">
-                <Link href="/sobrat-marshrut">
-                  <Compass className="h-5 w-5" />
-                  Собрать маршрут
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/sobytiya">
+                Все события
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {upcomingEvents.map((event) => (
+              <Link
+                key={event.id}
+                href={`/sobytiya/${event.slug}`}
+                className="group"
+              >
+                <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <CardContent className="space-y-3 p-5 sm:p-6">
+                    <Badge variant="secondary" className="bg-accent text-xs">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      {new Date(event.starts_at).toLocaleDateString("ru-RU", {
+                        day: "numeric",
+                        month: "long",
+                      })}
+                    </Badge>
+                    <h3 className="font-display text-base font-semibold leading-tight transition-colors group-hover:text-primary sm:text-lg">
+                      {event.title}
+                    </h3>
+                    {event.address && (
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        {event.address}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </section>
-      </div>
+      )}
+
+      {/* CTA */}
+      <section className="border-t border-border/60 py-12 sm:py-16">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <Compass className="mx-auto h-10 w-10 text-primary sm:h-12 sm:w-12" />
+          <h2 className="mt-4 font-display text-2xl font-bold sm:text-3xl lg:text-4xl">
+            Знаешь интересное место?
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            Поделись с другими — добавь место на сайт. Мы опубликуем после
+            проверки.
+          </p>
+          <Button asChild size="lg" className="mt-6">
+            <Link href="/add">Добавить место</Link>
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

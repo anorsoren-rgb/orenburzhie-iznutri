@@ -61,7 +61,7 @@ async function getAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({ scope }).toString(),
     dispatcher: httpsAgent,
-  } as any);
+  } as never);
 
   if (!res.ok) {
     const text = await res.text();

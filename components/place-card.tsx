@@ -1,105 +1,74 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Eye, Heart, Sparkles } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
-export type Place = {
-  id: string;
-  slug: string;
-  title: string;
-  shortDesc: string;
-  coverUrl?: string | null;
-  category?: string;
-  tags?: string[];
-  views?: number;
-  isFree?: boolean;
-  createdByGigachat?: boolean;
-};
-
-type Props = {
-  place: Place;
-  className?: string;
+type PlaceCardProps = {
+  place: {
+    id: string;
+    slug: string;
+    title: string;
+    shortDesc: string;
+    coverUrl: string | null;
+    category?: string;
+    views: number;
+    isFree: boolean;
+  };
   priority?: boolean;
 };
 
-export function PlaceCard({ place, className, priority = false }: Props) {
+export function PlaceCard({ place, priority }: PlaceCardProps) {
   return (
-    <Link href={`/mesta/${place.slug}`} className={cn("group block", className)}>
-      <Card className="overflow-hidden border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+    <Link href={`/mesta/${place.slug}`} className="group block">
+      <Card className="h-full overflow-hidden border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
           {place.coverUrl ? (
             <Image
               src={place.coverUrl}
               alt={place.title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
               priority={priority}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center sunrise-gradient">
-              <MapPin className="h-12 w-12 text-primary/40" />
+            <div className="flex h-full w-full items-center justify-center sunrise-gradient dark:sunrise-gradient-dark">
+              <MapPin className="h-12 w-12 text-primary/30 sm:h-16 sm:w-16" />
             </div>
           )}
 
-          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3">
             {place.category && (
-              <Badge variant="secondary" className="bg-background/90 backdrop-blur">
+              <Badge
+                variant="secondary"
+                className="bg-white/90 text-xs text-foreground backdrop-blur-sm"
+              >
                 {place.category}
               </Badge>
             )}
             {place.isFree && (
-              <Badge className="bg-ochre-500 text-white hover:bg-ochre-500">
+              <Badge className="bg-ochre-500 text-xs text-white hover:bg-ochre-500">
                 Бесплатно
-              </Badge>
-            )}
-            {place.createdByGigachat && (
-              <Badge
-                variant="outline"
-                className="border-primary/40 bg-background/90 text-primary backdrop-blur"
-              >
-                <Sparkles className="mr-1 h-3 w-3" />
-                Создано мы
               </Badge>
             )}
           </div>
         </div>
 
-        <CardContent className="space-y-3 p-4">
-          <h3 className="line-clamp-2 font-display text-lg font-semibold leading-tight transition-colors group-hover:text-primary">
+        <CardContent className="space-y-2 p-4 sm:p-5">
+          <h3 className="font-display text-base font-semibold leading-tight transition-colors group-hover:text-primary sm:text-lg">
             {place.title}
           </h3>
 
-          <p className="line-clamp-3 text-sm text-muted-foreground">
-            {place.shortDesc}
-          </p>
-
-          {place.tags && place.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {place.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-accent px-2.5 py-0.5 text-xs text-accent-foreground"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
+          {place.shortDesc && (
+            <p className="line-clamp-2 text-sm text-muted-foreground">
+              {place.shortDesc}
+            </p>
           )}
 
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {typeof place.views === "number" && (
-              <span className="flex items-center gap-1">
-                <Eye className="h-3.5 w-3.5" />
-                {place.views.toLocaleString("ru-RU")}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <Heart className="h-3.5 w-3.5" />
-              <span className="sr-only">В избранное</span>
-            </span>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Eye className="h-3.5 w-3.5" />
+            <span>{place.views} просмотров</span>
           </div>
         </CardContent>
       </Card>

@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -62,29 +62,38 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
+        {/* ЛОГО */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-display text-lg font-bold"
+          className="flex shrink-0 items-center gap-1.5 font-display text-base font-bold sm:gap-2 sm:text-lg"
         >
-          <MapPin className="h-6 w-6 text-primary" />
-          <span>Оренбуржье изнутри</span>
+          <MapPin className="h-5 w-5 shrink-0 text-primary sm:h-6 sm:w-6" />
+          <span className="hidden xs:inline sm:inline">Оренбуржье</span>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        {/* НАВИГАЦИЯ — только на планшетах и выше */}
+        <nav className="hidden items-center gap-0.5 md:flex lg:gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="rounded-md px-2 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground lg:px-3"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" asChild aria-label="Поиск">
+        {/* ДЕЙСТВИЯ */}
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            aria-label="Поиск"
+            className="h-9 w-9"
+          >
             <Link href="/mesta">
               <Search className="h-5 w-5" />
             </Link>
@@ -95,6 +104,7 @@ export function Header() {
             size="icon"
             onClick={toggleTheme}
             aria-label="Сменить тему"
+            className="h-9 w-9"
           >
             {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -169,24 +179,26 @@ export function Header() {
               ) : (
                 <Button
                   asChild
-                  className="hidden [&_svg]:size-4 sm:inline-flex"
+                  size="sm"
+                  className="[&_svg]:size-4"
                 >
                   <Link href="/login">
                     <UserIcon />
-                    <span>Войти</span>
+                    <span className="hidden sm:inline">Войти</span>
                   </Link>
                 </Button>
               )}
             </>
           )}
 
+          {/* ГАМБУРГЕР */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               render={
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="md:hidden h-9 w-9"
                   aria-label="Меню"
                 >
                   <Menu className="h-5 w-5" />

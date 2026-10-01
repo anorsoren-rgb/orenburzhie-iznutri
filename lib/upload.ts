@@ -1,41 +1,25 @@
-import imageCompression from "browser-image-compression";
+// ============================================
+// ВРЕМЕННАЯ ЗАГЛУШКА ЗАГРУЗКИ ФОТО
+// ============================================
+// Supabase Storage удалён. Сейчас функция возвращает
+// ошибку — загрузка недоступна до момента, когда
+// перенесём хранение фото на VPS (через API-роут).
 
-const MAX_SIZE_MB = 5;
+type UploadResult = {
+  url: string;
+  path: string;
+};
 
-async function compressImage(file: File): Promise<File> {
-  const options = {
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: 1920,
-    useWebWorker: true,
-    fileType: "image/webp",
-  };
-  try {
-    return await imageCompression(file, options);
-  } catch {
-    return file;
-  }
-}
-
-// TODO: Загрузка на VPS (S3 или локально) — пока заглушка
 export async function uploadPlaceImage(
-  file: File,
-  userId: string
-): Promise<{ url: string; path: string }> {
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Можно загружать только изображения");
-  }
-  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    throw new Error(`Файл больше ${MAX_SIZE_MB} МБ`);
-  }
-
-  await compressImage(file);
-
+  _file: File,
+  _userId: string
+): Promise<UploadResult> {
   throw new Error(
-    "Загрузка фото временно недоступна. Скоро добавим!"
+    "Загрузка фото временно недоступна. Мы работаем над этим."
   );
 }
 
-export async function deletePlaceImage(path: string) {
-  // Заглушка
+export async function deletePlaceImage(_path: string) {
+  // Заглушка — ничего не делает
   return;
 }

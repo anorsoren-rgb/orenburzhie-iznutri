@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useRef, useState } from "react";
-import { X, Loader2, ImagePlus } from "lucide-react";
+import { X, Loader2, ImagePlus, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadPlaceImage, deletePlaceImage } from "@/lib/upload";
 
@@ -87,35 +87,39 @@ export function ImageUploader({
 
   return (
     <div className="space-y-3">
+      {/* Плашка «временно недоступно» */}
+      <div className="flex items-start gap-2 rounded-md border border-ochre-500/40 bg-ochre-50 px-4 py-3 text-sm dark:bg-ochre-500/10">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-ochre-600" />
+        <div>
+          <p className="font-medium">Загрузка фото временно недоступна</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Мы переносим хранилище на российский сервер. Скоро загрузка снова
+            заработает — тогда вы сможете добавить фото к месту.
+          </p>
+        </div>
+      </div>
+
+      {/* Зона загрузки (неактивная) */}
       <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => setError("Загрузка фото временно недоступна")}
         className={cn(
-          "flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors",
-          dragOver
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/40 hover:bg-accent/40"
+          "flex cursor-not-allowed flex-col items-center gap-2 rounded-lg border-2 border-dashed p-6 text-center opacity-60",
+          "border-border"
         )}
       >
         {uploading ? (
           <>
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm">Загружаем и сжимаем...</p>
+            <p className="text-sm">Загружаем...</p>
           </>
         ) : (
           <>
             <ImagePlus className="h-8 w-8 text-muted-foreground/60" />
             <p className="text-sm font-medium">
-              Перетащи фото сюда или нажми
+              Загрузка фото скоро вернётся
             </p>
             <p className="text-xs text-muted-foreground">
-              JPG, PNG, WebP до 5 МБ · максимум {maxFiles} фото · автоматически
-              сжимаем в WebP
+              JPG, PNG, WebP до 5 МБ · максимум {maxFiles} фото
             </p>
           </>
         )}
@@ -127,7 +131,7 @@ export function ImageUploader({
         accept="image/*"
         multiple
         className="hidden"
-        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+        disabled
       />
 
       {error && (
@@ -143,7 +147,6 @@ export function ImageUploader({
               key={img.path}
               className="group relative aspect-square overflow-hidden rounded-md border border-border/60"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={img.url}
                 alt={`Фото ${i + 1}`}
@@ -163,12 +166,6 @@ export function ImageUploader({
             </div>
           ))}
         </div>
-      )}
-
-      {images.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Загружено: {images.length} из {maxFiles}
-        </p>
       )}
     </div>
   );
